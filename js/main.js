@@ -1,5 +1,25 @@
+function main() {
+    initNavigation();
+    AddMovie();
+    UpdateMovie();
+    DeleteMovie();
+    ViewMovie();
+}
 
+function AddMovie() {
+    // Function to add a movie to the watchlist
+}
+function UpdateMovie() {
+    // Function to update a movie in the watchlist
+}
+function DeleteMovie() {
+    // Function to delete a movie from the watchlist
+}
+function ViewMovie() {
+    // Function to view a movie in the watchlist
+}
 
+function initNavigation() {
 //#region Navigation UI
 document.addEventListener('DOMContentLoaded', function () {
     const toggle = document.querySelector('.nav-toggle');
@@ -23,3 +43,4 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 //#endregion
+}
