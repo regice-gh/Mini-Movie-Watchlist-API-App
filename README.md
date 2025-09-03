@@ -33,16 +33,16 @@ Extra endpoints (API design style):
 
 Database (MySQL)
 Movies Table
-•	id (PK)
-•	title (string)
-•	year (int)
-•	genre (string)
-•	rating (int, optional)
-•	watched (boolean, default false)
+•	id (PK) ✅
+•	title (string)✅
+•	year (int)✅
+•	genre (string)✅
+•	rating (int, optional)✅
+•	watched (boolean, default false)✅
 
 Frontend
 Keep it simple — plain JS with fetch:
-•	A list that shows all movies.
+•	A list that shows all movies. 
 •	Buttons to add, edit, delete.
 •	A checkbox or toggle for “watched.”
 •	Maybe a little “Top 5” section.
