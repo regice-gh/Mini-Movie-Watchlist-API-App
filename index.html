@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/styles.css">
+    <title>APIeindopdracht</title>
+</head>
+<body>
+    <header class="site-header">
+        <nav class="navbar" role="navigation" aria-label="Main navigation">
+            <div class="nav-brand">
+                <a href="#home" class="brand-link">Mini Movie<span class="brand-dot">•</span></a>
+            </div>
+            <button class="nav-toggle" aria-controls="nav-menu" aria-expanded="false" aria-label="Toggle navigation">
+                ☰
+            </button>
+            <ul class="navbar-list" id="nav-menu">
+                <li class="navbar-item"><a href="#home">Home</a></li>
+                <li class="navbar-item"><a href="#my-movies">My Movies</a></li>
+                <li class="navbar-item"><a href="#about">About</a></li>
+                <li class="navbar-item"><a href="#contact">Contact</a></li>
+            </ul>
+        </nav>
+        <div class="hero" id="home">
+            <h1 class="hero-title">Welcome to the<br><span id="title">Mini Movie Watchlist API App</span></h1>
+            <p class="hero-sub">Create and manage your personal watchlist. This is the UI design — app features remain unchanged.</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <section id="my-movies" class="panel">
+            <h2>My Movies</h2>
+            <p class="muted">Your watchlist will appear here. Use the app controls to add, edit, delete, or mark items as watched.</p>
+            <div class="cards">
+                <div class="card placeholder">
+                    <div class="poster empty">🎬</div>
+                    <div class="card-body">
+                        <h3 class="card-title">No movies yet</h3>
+                        <p class="card-text">Add a movie to see it listed here. The layout supports posters, title, year, genre and controls.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="about" class="panel">
+            <h2>About</h2>
+            <p>This project is a Mini Movie Watchlist made as an API assignment. The design is lightweight, responsive, and accessible.</p>
+        </section>
+
+        <section id="contact" class="panel">
+            <h2>Contact</h2>
+            <p>For questions about the project, check the README or contact the author.</p>
+        </section>
+    </main>
+    <script src="js/main.js"></script>
+</body>
+</html>
