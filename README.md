@@ -41,7 +41,7 @@ Movies Table
 •	watched (boolean, default false)
 
 Frontend
-Keep it simple — plain JS with fetch or Vue.js if you’re adventurous:
+Keep it simple — plain JS with fetch:
 •	A list that shows all movies.
 •	Buttons to add, edit, delete.
 •	A checkbox or toggle for “watched.”
