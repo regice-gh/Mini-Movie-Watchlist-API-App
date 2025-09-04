@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/styles.css">
+    <title>Movie Details</title>
+</head>
+<body>
+    <header class="site-header">
+        <nav class="navbar" role="navigation" aria-label="Main navigation">
+            <div class="nav-brand">
+                <a href="index.html#home" class="brand-link">Mini Movie<span class="brand-dot">•</span></a>
+            </div>
+            <button class="nav-toggle" aria-controls="nav-menu" aria-expanded="false" aria-label="Toggle navigation">
+                ☰
+            </button>
+            <ul class="navbar-list" id="nav-menu">
+                <li class="navbar-item"><a href="index.html#home">Home</a></li>
+                <li class="navbar-item"><a href="index.html#my-movies">My Movies</a></li>
+                <li class="navbar-item"><a href="index.html#about">About</a></li>
+                <li class="navbar-item"><a href="index.html#contact">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main class="container">
+        <!-- 16:9 Aspect Ratio Container -->
+        <div style="position: relative; padding-bottom: 56.25%; height: 0;">
+          <iframe
+            src="https://vidfast.pro/movie/tt0111161?autoPlay=true&fullscreenButton=true&chromeCastButton=true&title=The%20Shawshank%20Redemption%20(1994)&poster=https://m.media-amazon.com/images/M/MV5BMDFkYTc0MGEtZmNhMC00ZDIzLWFmNTEtODM1ZmRlYWMwMWFmXkEyXkFqcGdeQXVyNDYyMDk5MTU@._V1_.jpg"
+            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"
+            frameborder="0"
+            allowfullscreen
+            allow="encrypted-media"
+          ></iframe>
+        </div>
+        <section id="movie-detail" class="panel">
+            <h2 id="detail-title">Movie details</h2>
+            <div class="cards">
+                <div id="detail-card" class="card">
+                    <!-- details rendered here -->
+                </div>
+            </div>
+        </section>
+    </main>
+    <script src="js/movie.js"></script>
+</body>
+</html>

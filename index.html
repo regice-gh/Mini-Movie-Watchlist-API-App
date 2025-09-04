@@ -29,11 +29,20 @@
     </header>
 
     <main class="container">
+        <section id="movie-list" class="panel">
+            <h2>Movie List</h2>
+            <div id="movieList" class="cards">
+                <!-- Movie cards will be dynamically inserted here -->
+            </div>
+        </section>
         <section id="my-movies" class="panel">
             <h2>My Movies</h2>
             <p class="muted">Your watchlist will appear here. Use the app controls to add, edit, delete, or mark items as watched.</p>
             <div class="cards">
-                <div class="card placeholder">
+                <div id="myMovieList" class="card-list">
+                    <!-- User's movie cards will be dynamically inserted here -->
+                </div>
+                <div id="myPlaceholder" class="card placeholder">
                     <div class="poster empty">🎬</div>
                     <div class="card-body">
                         <h3 class="card-title">No movies yet</h3>

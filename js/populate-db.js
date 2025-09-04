@@ -20,31 +20,84 @@ CREATE TABLE IF NOT EXISTS movies (
   genre VARCHAR(100) NULL,
   rating TINYINT NULL,
   watched BOOLEAN NOT NULL DEFAULT FALSE,
+  poster_url VARCHAR(512) NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 `;
 
 const dummyMovies = [
-  { title: 'The Shawshank Redemption', year: 1994, genre: 'Drama', rating: 5, watched: true },
-  { title: 'The Godfather', year: 1972, genre: 'Crime', rating: 5, watched: false },
-  { title: 'Inception', year: 2010, genre: 'Sci-Fi', rating: 4, watched: false },
-  { title: 'Spirited Away', year: 2001, genre: 'Animation', rating: 5, watched: true },
-  { title: 'Parasite', year: 2019, genre: 'Thriller', rating: 5, watched: false }
+  { title: 'The Shawshank Redemption', year: 1994, genre: 'Drama', rating: 5, watched: true, poster_url: 'https://via.placeholder.com/300x450?text=Shawshank+Redemption' },
+  { title: 'The Godfather', year: 1972, genre: 'Crime', rating: 5, watched: false, poster_url: 'https://via.placeholder.com/300x450?text=The+Godfather' },
+  { title: 'Inception', year: 2010, genre: 'Sci-Fi', rating: 4, watched: false, poster_url: 'https://via.placeholder.com/300x450?text=Inception' },
+  { title: 'Spirited Away', year: 2001, genre: 'Animation', rating: 5, watched: true, poster_url: 'https://via.placeholder.com/300x450?text=Spirited+Away' },
+  { title: 'Parasite', year: 2019, genre: 'Thriller', rating: 5, watched: false, poster_url: 'https://via.placeholder.com/300x450?text=Parasite' }
 ];
 
 async function run() {
   console.log(`Connecting to MySQL ${DB_HOST}:${DB_PORT} as ${DB_USER}`);
   const conn = await mysql.createConnection({ host: DB_HOST, user: DB_USER, password: DB_PASS, port: DB_PORT, multipleStatements: true });
   try {
-    console.log('Creating database and table...');
-    await conn.query(schema);
+    // Parse command-line flags
+    const args = process.argv.slice(2);
+    const recreateFlag = args.includes('--recreate-db') || args.includes('--recreate');
+    const resetFlag = args.includes('--reset-data') || args.includes('--reset');
 
-    console.log('Inserting dummy movies...');
-    const insertSql = 'INSERT INTO `'+DB_NAME+'`.movies (title, year, genre, rating, watched) VALUES (?, ?, ?, ?, ?)';
-    for (const m of dummyMovies) {
-      await conn.execute(insertSql, [m.title, m.year, m.genre, m.rating, m.watched ? 1 : 0]);
+    // Helper: insert dummy movies (used by multiple flows)
+    async function insertDummyMovies() {
+      console.log('Inserting dummy movies...');
+      const insertSql = 'INSERT INTO `'+DB_NAME+'`.movies (title, year, genre, rating, watched, poster_url) VALUES (?, ?, ?, ?, ?, ?)';
+      for (const m of dummyMovies) {
+        await conn.execute(insertSql, [m.title, m.year, m.genre, m.rating, m.watched ? 1 : 0, m.poster_url || null]);
+      }
     }
 
+    // Helper: ensure poster_url column exists
+    async function ensurePosterColumn() {
+      try {
+        const [cols] = await conn.execute(
+          'SELECT COUNT(*) AS cnt FROM information_schema.columns WHERE table_schema = ? AND table_name = ? AND column_name = ?',
+          [DB_NAME, 'movies', 'poster_url']
+        );
+        if (cols && cols[0] && cols[0].cnt === 0) {
+          console.log('Adding poster_url column to movies table...');
+          const alterSql = 'ALTER TABLE `'+DB_NAME+'`.movies ADD COLUMN poster_url VARCHAR(512) NULL;';
+          await conn.query(alterSql);
+        }
+      } catch (alterErr) {
+        console.warn('Could not ensure poster_url column exists:', alterErr.message || alterErr);
+      }
+    }
+
+    if (recreateFlag) {
+      console.log('Dropping database if it exists...');
+      await conn.query('DROP DATABASE IF EXISTS `'+DB_NAME+'`;');
+      console.log('Creating database and table...');
+      await conn.query(schema);
+      // fresh DB already has poster_url column from schema
+      await insertDummyMovies();
+      console.log('Recreate complete.');
+      console.log(`Database: ${DB_NAME}`);
+      return;
+    }
+
+    if (resetFlag) {
+      console.log('Resetting data: clearing movies table and re-inserting dummy data...');
+      // Make sure DB exists and table exists; if not, create via schema
+      await conn.query(schema);
+      await conn.query('USE `'+DB_NAME+'`;');
+      await conn.query('DELETE FROM movies;');
+      await ensurePosterColumn();
+      await insertDummyMovies();
+      console.log('Reset complete.');
+      console.log(`Database: ${DB_NAME}`);
+      return;
+    }
+
+    // Default behaviour: create DB/table if missing, ensure column exists, then insert (may append duplicates)
+    console.log('Creating database and table (if missing)...');
+    await conn.query(schema);
+    await ensurePosterColumn();
+    await insertDummyMovies();
     console.log('Done.');
     console.log(`Database: ${DB_NAME}`);
   } catch (err) {

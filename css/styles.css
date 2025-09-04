@@ -93,6 +93,19 @@ body {
     margin: 0.5rem auto 2rem;
     padding: 0 1rem;
 }
+button {
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: black;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 600;
+    transition: background 0.2s;
+    &:hover {
+        background: rgba(0, 120, 212, 0.1);
+    }
+}
 .panel {
     background: var(--card-bg);
     padding: 1rem;

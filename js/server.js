@@ -1,17 +1,13 @@
-// 1. IMPORT THE LIBRARIES
 const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
 
-// 2. CREATE AN EXPRESS APPLICATION
 const app = express();
 const port = 3000; 
 
-// 3. APPLY MIDDLEWARE
 app.use(cors());
 app.use(express.json());
 
-// 4. CREATE A DATABASE CONNECTION POOL
 const db = mysql.createPool({
   host: 'localhost',
   user: 'root',
@@ -19,24 +15,35 @@ const db = mysql.createPool({
   database: 'apieindopdracht'
 }).promise();
 
-// 5. DEFINE YOUR API ENDPOINT
 
 app.get('/api/movies', async (req, res) => {
   try {
-    // 6. TALK TO THE DATABASE
     const [rows, fields] = await db.execute('SELECT * FROM movies');
 
-    // 7. SEND THE DATA BACK TO THE FRONTEND AS JSON
     res.json(rows);
 
   } catch (error) {
-    // 8. HANDLE ANY ERRORS
     console.error("Error fetching movies from database:", error);
     res.status(500).json({ error: 'Failed to fetch movies' });
   }
 });
 
-// 9. START THE SERVER
+app.get('/api/movies/:id', async (req, res) => {
+  const id = Number(req.params.id);
+  console.log('GET /api/movies/:id called with id=', req.params.id);
+  if (!Number.isFinite(id) || id <= 0) {
+    return res.status(400).json({ error: 'Invalid id' });
+  }
+  try {
+    const [rows] = await db.execute('SELECT * FROM movies WHERE id = ?', [id]);
+    if (!rows || rows.length === 0) return res.status(404).json({ error: 'Not found' });
+    return res.json(rows[0]);
+  } catch (err) {
+    console.error('Error fetching movie by id:', err);
+    return res.status(500).json({ error: 'Failed to fetch movie' });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Movie API server listening on http://localhost:${port}`);
 });
