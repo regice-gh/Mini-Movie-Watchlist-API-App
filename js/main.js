@@ -25,7 +25,7 @@ async function fetchMovies() {
         poster.alt = movie.title + ' poster';
         poster.width = 72;
         poster.height = 100;
-        poster.src =  ('img/' + (movie.title ? movie.title.toLowerCase().replace(/\s+/g,'') : 'placeholder') + '.png')|| movie.img || movie.poster_url;
+        poster.src =  ('img/' + (movie.title ? movie.title.toLowerCase().replace(/\s+/g,'') : 'placeholder') + '.png');
 
         const body = document.createElement('div');
         body.className = 'card-body';
@@ -49,13 +49,23 @@ async function fetchMovies() {
         const watchlistBtn = document.createElement('button');
         watchlistBtn.type = 'button';
         watchlistBtn.textContent = movie.watchlist ? 'Mark on Watchlist' : 'Mark off Watchlist';
-        watchlistBtn.setAttribute('aria-label', `${movie.watched ? 'Mark on Watchlist' : 'Mark off Watchlist'} for ${movie.title}`);
+        watchlistBtn.setAttribute('aria-label', `${movie.watchlist ? 'Mark on Watchlist' : 'Mark off Watchlist'} for ${movie.title}`);
         watchlistBtn.addEventListener('click', async () => {
             try {
+                /* 
+                // Update (PUT): Update an item by ID
+                app.put('/items/:id', (req, res) => {
+                    const item = items.find(i => i.id === parseInt(req.params.id));
+                    if (!item) return res.status(404).send('Item not found');
+
+                    item.name = req.body.name; 
+                    res.json(item);
+                });
+                */
                 const res = await fetch(`http://localhost:3000/api/movies/${encodeURIComponent(id)}`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ watched: !movie.watched })
+                    body: JSON.stringify({ watchlist: !movie.watchlist || movie.watchlist })
                 });
                 if (!res.ok) throw new Error('Failed to update movie');
             }
@@ -152,14 +162,14 @@ async function fetchWatchListMovies() {
         const movies = await response.json();
 
         const movieListElement = document.getElementById('myWatchlist');
-        const placeholder = document.getElementById('myPlaceholder');
+        const placeholder = document.getElementById('myPlaceholderWatchlist');
         if (!movieListElement) return;
         movieListElement.innerHTML = ''; // Clear existing list
 
-        let watchedCount = 0;
+        let watchlistCount = 0;
         movies.forEach(movie => {
-            if (movie.watched) {
-                watchedCount++;
+            if (movie.watchlist) {
+                watchlistCount++;
                 const card = document.createElement('div');
                 card.className = 'card';
 
@@ -189,9 +199,9 @@ async function fetchWatchListMovies() {
             }
         });
 
-        // hide placeholder if watched movies exist
+        // hide placeholder if watchlist movies is not empty
         if (placeholder) {
-            if (watchedCount > 0) placeholder.style.display = 'none';
+            if (watchlistCount > 0) placeholder.style.display = 'none';
             else placeholder.style.display = '';
         }
 
