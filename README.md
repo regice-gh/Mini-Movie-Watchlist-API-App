@@ -39,7 +39,7 @@ Movies Table
 •	genre (string)✅
 •	rating (int, optional)✅
 •	watched (boolean, default false)✅
-•   img (URL of PNG) ✅
+•   img (URL or PNG) ✅
 
 Frontend
 Keep it simple — plain JS with fetch:

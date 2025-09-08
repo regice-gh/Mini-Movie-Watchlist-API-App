@@ -29,7 +29,7 @@ function renderMovie(movie) {
     const poster = document.createElement('img');
     poster.className = 'poster';
     poster.alt = movie.title + ' poster';
-    poster.src =  ('img/' + (movie.title ? movie.title.toLowerCase().replace(/\s+/g,'') : 'placeholder') + '.png')|| movie.img || movie.poster_url;
+    poster.src =  ('img/' + (movie.title ? movie.title.toLowerCase().replace(/\s+/g,'') : 'placeholder') + '.png');
 
     poster.style.width = '200px';
     poster.style.height = '300px';
@@ -52,6 +52,26 @@ function renderMovie(movie) {
     const watched = document.createElement('p');
     watched.className = 'card-text';
     watched.textContent = 'Watched: ' + (movie.watched ? 'Yes' : 'No');
+
+    const watchlistBtn = document.createElement('button');
+        watchlistBtn.type = 'button';
+        watchlistBtn.textContent = movie.watched ? 'Mark as Unwatched' : 'Mark as Watched';
+        watchlistBtn.setAttribute('aria-label', `${movie.watched ? 'Mark as Unwatched' : 'Mark as Watched'} for ${movie.title}`);
+        watchlistBtn.addEventListener('click', async () => {
+            try {
+                const res = await fetch(`http://localhost:3000/api/movies/${encodeURIComponent(id)}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ watched: !movie.watched })
+                });
+                if (!res.ok) throw new Error('Failed to update movie');
+            }
+            catch (err) {
+                console.error('Error updating movie:', err);
+                alert('Could not update movie. See console for details.');
+                return;
+            }
+        });
 
     const back = document.createElement('a');
     back.href = 'index.html#my-movies';

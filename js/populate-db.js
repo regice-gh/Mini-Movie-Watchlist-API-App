@@ -10,27 +10,30 @@ const DB_PASS = process.env.DB_PASS || '';
 const DB_PORT = process.env.DB_PORT ? Number(process.env.DB_PORT) : 3306;
 
 const schema = `
-CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+DROP DATABASE IF EXISTS \`${DB_NAME}\`; 
+CREATE DATABASE \`${DB_NAME}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE \`${DB_NAME}\`;
 
-CREATE TABLE IF NOT EXISTS movies (
+DROP TABLE IF EXISTS movies; 
+CREATE TABLE movies (
   id INT AUTO_INCREMENT PRIMARY KEY,
   title VARCHAR(255) NOT NULL,
   year INT NULL,
   genre VARCHAR(100) NULL,
   rating TINYINT NULL,
   watched BOOLEAN NOT NULL DEFAULT FALSE,
+  watchlist BOOLEAN NOT NULL DEFAULT FALSE,
   poster_url VARCHAR(512) NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 `;
 
 const dummyMovies = [
-  { title: 'The Shawshank Redemption', year: 1994, genre: 'Drama', rating: 5, watched: true, poster_url: 'https://via.placeholder.com/300x450?text=Shawshank+Redemption' },
-  { title: 'The Godfather', year: 1972, genre: 'Crime', rating: 5, watched: false, poster_url: 'https://via.placeholder.com/300x450?text=The+Godfather' },
-  { title: 'Inception', year: 2010, genre: 'Sci-Fi', rating: 4, watched: false, poster_url: 'https://via.placeholder.com/300x450?text=Inception' },
-  { title: 'Spirited Away', year: 2001, genre: 'Animation', rating: 5, watched: true, poster_url: 'https://via.placeholder.com/300x450?text=Spirited+Away' },
-  { title: 'Parasite', year: 2019, genre: 'Thriller', rating: 5, watched: false, poster_url: 'https://via.placeholder.com/300x450?text=Parasite' }
+  { title: 'The Shawshank Redemption', year: 1994, genre: 'Drama', rating: 5, watched: true, watchlist:true, poster_url: 'https://via.placeholder.com/300x450?text=Shawshank+Redemption' },
+  { title: 'The Godfather', year: 1972, genre: 'Crime', rating: 5, watched: false, watchlist:false, poster_url: 'https://via.placeholder.com/300x450?text=The+Godfather' },
+  { title: 'Inception', year: 2010, genre: 'Sci-Fi', rating: 4, watched: false, watchlist:false, poster_url: 'https://via.placeholder.com/300x450?text=Inception' },
+  { title: 'Spirited Away', year: 2001, genre: 'Animation', rating: 5, watched: true, watchlist:false, poster_url: 'https://via.placeholder.com/300x450?text=Spirited+Away' },
+  { title: 'Parasite', year: 2019, genre: 'Thriller', rating: 5, watched: false, watchlist:false, poster_url: 'https://via.placeholder.com/300x450?text=Parasite' }
 ];
 
 async function run() {
@@ -45,9 +48,9 @@ async function run() {
     // Helper: insert dummy movies (used by multiple flows)
     async function insertDummyMovies() {
       console.log('Inserting dummy movies...');
-      const insertSql = 'INSERT INTO `'+DB_NAME+'`.movies (title, year, genre, rating, watched, poster_url) VALUES (?, ?, ?, ?, ?, ?)';
+      const insertSql = 'INSERT INTO `'+DB_NAME+'`.movies (title, year, genre, rating, watched, watchlist, poster_url) VALUES (?, ?, ?, ?, ?, ?, ?)';
       for (const m of dummyMovies) {
-        await conn.execute(insertSql, [m.title, m.year, m.genre, m.rating, m.watched ? 1 : 0, m.poster_url || null]);
+        await conn.execute(insertSql, [m.title, m.year, m.genre, m.rating, m.watched ? 1 : 0, m.watchlist ? 1 : 0, m.poster_url || null]);
       }
     }
 
