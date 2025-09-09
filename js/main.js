@@ -48,26 +48,24 @@ async function fetchMovies() {
 
         const watchlistBtn = document.createElement('button');
         watchlistBtn.type = 'button';
-        watchlistBtn.textContent = movie.watchlist ? 'Mark on Watchlist' : 'Mark off Watchlist';
-        watchlistBtn.setAttribute('aria-label', `${movie.watchlist ? 'Mark on Watchlist' : 'Mark off Watchlist'} for ${movie.title}`);
+        watchlistBtn.textContent = movie.watchlist ? 'On Watchlist' : 'Off Watchlist';
         watchlistBtn.addEventListener('click', async () => {
             try {
-                /* 
-                // Update (PUT): Update an item by ID
-                app.put('/items/:id', (req, res) => {
-                    const item = items.find(i => i.id === parseInt(req.params.id));
-                    if (!item) return res.status(404).send('Item not found');
-
-                    item.name = req.body.name; 
-                    res.json(item);
-                });
-                */
-                const res = await fetch(`http://localhost:3000/api/movies/${encodeURIComponent(id)}`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ watchlist: !movie.watchlist || movie.watchlist })
-                });
+                const res = await fetch(`http://localhost:3000/api/movies/${encodeURIComponent(id)}/watchlist`, {
+                    method: 'PATCH' });
+                
                 if (!res.ok) throw new Error('Failed to update movie');
+
+                const updatedMovie = await res.json();
+                movie.watchlist = updatedMovie.watchlist;
+
+                watchlistBtn.textContent = movie.watchlist 
+                ? 'On Watchlist' 
+                : 'Off Watchlist';
+                watchlistBtn.setAttribute(
+                    'aria-label', 
+                    `${movie.watchlist ? 'On Watchlist' : 'Off Watchlist'} for ${movie.title}`);
+                window.location.reload();
             }
             catch (err) {
                 console.error('Error updating movie:', err);
