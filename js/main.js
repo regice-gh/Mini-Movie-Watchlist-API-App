@@ -10,6 +10,7 @@ async function fetchMovies() {
     const movies = await response.json();
 
     const movieListElement = document.getElementById('movieList');
+
     if (!movieListElement) return; 
 
     movieListElement.innerHTML = '';
@@ -51,8 +52,8 @@ async function fetchMovies() {
         watchlistBtn.textContent = movie.watchlist ? 'On Watchlist' : 'Off Watchlist';
         watchlistBtn.addEventListener('click', async () => {
             try {
-                const res = await fetch(`http://localhost:3000/api/movies/${encodeURIComponent(id)}/watchlist`, {
-                    method: 'PATCH' });
+                const url = `http://localhost:3000/api/movies/${encodeURIComponent(id)}/watchlist`;
+                const res = await fetch(url, { method: 'PATCH' });
                 
                 if (!res.ok) throw new Error('Failed to update movie');
 
@@ -91,6 +92,7 @@ async function fetchMovies() {
     movieListElement.innerHTML = '<li>Failed to load movies.</li>';
   }
 }
+
 async function fetchMyMovies() {
     try {
         const response = await fetch('http://localhost:3000/api/movies');
@@ -101,6 +103,7 @@ async function fetchMyMovies() {
 
         const movieListElement = document.getElementById('myMovieList');
         const placeholder = document.getElementById('myPlaceholder');
+
         if (!movieListElement) return;
         movieListElement.innerHTML = ''; // Clear existing list
 
@@ -128,9 +131,10 @@ async function fetchMyMovies() {
                 p.className = 'card-text';
                 p.textContent = `${movie.genre || 'Unknown genre'} • Rating: ${movie.rating || '-'} `;
 
-                card.appendChild(poster);
                 body.appendChild(h3);
                 body.appendChild(p);
+                
+                card.appendChild(poster);
                 card.appendChild(body);
 
                 movieListElement.appendChild(card);
@@ -150,30 +154,36 @@ async function fetchMyMovies() {
         console.error('Could not fetch movies:', error);
     }
 }
-
 async function fetchWatchListMovies() {
     try {
         const response = await fetch('http://localhost:3000/api/movies');
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
+
         const movies = await response.json();
 
         const movieListElement = document.getElementById('myWatchlist');
         const placeholder = document.getElementById('myPlaceholderWatchlist');
+
         if (!movieListElement) return;
         movieListElement.innerHTML = ''; // Clear existing list
 
         let watchlistCount = 0;
         movies.forEach(movie => {
             if (movie.watchlist) {
+                const id = movie.id || movie._id || movie.ID;
                 watchlistCount++;
-                const card = document.createElement('div');
+
+                const card = document.createElement('article');
                 card.className = 'card';
 
                 const poster = document.createElement('img');
                 poster.className = 'poster';
                 poster.alt = movie.title + ' poster';
+                poster.width = 72;
+                poster.height = 100;
                 poster.src =  ('img/' + (movie.title ? movie.title.toLowerCase().replace(/\s+/g,'') : 'placeholder') + '.png');
 
 
@@ -188,11 +198,51 @@ async function fetchWatchListMovies() {
                 p.className = 'card-text';
                 p.textContent = `${movie.genre || 'Unknown genre'} • Rating: ${movie.rating || '-'} `;
 
-                card.appendChild(poster);
+                const openBtn = document.createElement('button');
+                openBtn.type = 'button';
+                openBtn.textContent = 'Watch';
+                openBtn.setAttribute('aria-label', `Open details for ${movie.title}`);
+                openBtn.addEventListener('click', () => {
+                    window.location.href = `movie.html?id=${encodeURIComponent(id)}`;
+                });
+
+                const watchlistBtn = document.createElement('button');
+                watchlistBtn.type = 'button';
+                watchlistBtn.textContent = movie.watchlist ? 'On Watchlist' : 'Off Watchlist';
+                watchlistBtn.addEventListener('click', async () => {
+                    try {
+                        const url = `http://localhost:3000/api/movies/${encodeURIComponent(id)}/watchlist`;
+                        const res = await fetch(url, { method: 'PATCH' });
+
+                        if (!res.ok) throw new Error('Failed to update movie');
+
+                        const updatedMovie = await res.json();
+                        movie.watchlist = updatedMovie.watchlist;
+
+                        watchlistBtn.textContent = movie.watchlist 
+                        ? 'On Watchlist' 
+                        : 'Off Watchlist';
+                        watchlistBtn.setAttribute(
+                            'aria-label', 
+                            `${movie.watchlist ? 'On Watchlist' : 'Off Watchlist'} for ${movie.title}`);
+                        window.location.reload();
+                    }
+                    catch (err) {
+                        console.error('Error updating movie:', err);
+                        alert('Could not update movie. See console for details.');
+                        return;
+                    }
+                });
+                
                 body.appendChild(h3);
                 body.appendChild(p);
-                card.appendChild(body);
+                
+                body.appendChild(openBtn);
+                body.appendChild(watchlistBtn);
 
+                card.appendChild(poster);
+                card.appendChild(body);
+                
                 movieListElement.appendChild(card);
             }
         });
@@ -208,6 +258,7 @@ async function fetchWatchListMovies() {
         console.error('Could not fetch movies:', error);
     }
 }
+
 fetchMovies();
 fetchMyMovies();
 fetchWatchListMovies();

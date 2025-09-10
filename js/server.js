@@ -19,7 +19,7 @@ const db = mysql.createPool({
 
 app.get('/api/movies', async (req, res) => {
   try {
-    const [rows, fields] = await db.execute('SELECT * FROM movies');
+    const [rows] = await db.execute('SELECT * FROM movies');
 
     res.json(rows);
 
@@ -94,28 +94,34 @@ app.put('/api/movies/:id', async (req, res) => {
 });
 
 
-app.patch(`/api/movies/:id/watchlist`, async (req, res) => {
-  const id = Number(req.params.id);
-  if(!Number.isFinite(id) || id <= 0) {
+app.patch('/api/movies/:id/watchlist', async (req, res) => {
+  const id = Number(req.params.id);;
+
+  if (!Number.isInteger(id) || id <= 0) {
     return res.status(400).json({ error: 'Invalid id' });
   }
+
   try {
-    const [rows] = await db.execute('SELECT watchlist FROM movies WHERE id = ?', [id]);
-    if (!rows || rows.length === 0) return res.status(404).json({ error: 'Movie not found' });
+    const [rows] = await db.execute(
+      'SELECT watchlist FROM movies WHERE id = ? LIMIT 1',
+      [id]
+    );
 
-    const currentWatchlist = rows[0].watchlist; //reads
-    const [newValue] = currentWatchlist ? 0 : 1; //toggles
+    if (!rows.length) {
+      return res.status(404).json({ error: 'Movie not found' });
+    }
 
-    await db.execute('UPDATE movies SET watchlist = ? WHERE id = ?', [newValue, id]); //updates database
+    const [updatedRows] = await db.execute(
+      'SELECT * FROM movies WHERE id = ?',
+      [id]
+    );
 
-    const [updatedRows] = await db.execute('SELECT * FROM movies WHERE id = ?', [id]);
     res.json(updatedRows[0]);
-
-  } catch (error) {
-    console.error('Error updating watchlist status in database:', error);
-    res.status(500).json({ error: 'Failed to update watchlist status' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
+
 
 
 app.delete('/api/movies/:id', async (req, res) => {
@@ -123,8 +129,6 @@ app.delete('/api/movies/:id', async (req, res) => {
   if (!Number.isFinite(id) || id <= 0) {
     return res.status(400).json({ error: 'Invalid id' });
   }
-  
-
   try {
     const [result] = await db.execute('DELETE FROM movies WHERE id = ?', [id]);
     if (result.affectedRows === 0) return res.status(404).json({ error: 'Not found' });
