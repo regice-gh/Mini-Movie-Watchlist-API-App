@@ -1,4 +1,3 @@
-// Render movie details based on ?id=...
 
 function getQueryParam(name) {
     const params = new URLSearchParams(window.location.search);
@@ -54,24 +53,30 @@ function renderMovie(movie) {
     watched.textContent = 'Watched: ' + (movie.watched ? 'Yes' : 'No');
 
     const watchlistBtn = document.createElement('button');
-        watchlistBtn.type = 'button';
-        watchlistBtn.textContent = movie.watched ? 'Mark as Unwatched' : 'Mark as Watched';
-        watchlistBtn.setAttribute('aria-label', `${movie.watched ? 'Mark as Unwatched' : 'Mark as Watched'} for ${movie.title}`);
-        watchlistBtn.addEventListener('click', async () => {
-            try {
-                const res = await fetch(`http://localhost:3000/api/movies/${encodeURIComponent(id)}`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ watched: !movie.watched })
-                });
-                if (!res.ok) throw new Error('Failed to update movie');
-            }
-            catch (err) {
-                console.error('Error updating movie:', err);
-                alert('Could not update movie. See console for details.');
-                return;
-            }
-        });
+    watchlistBtn.type = 'button';
+    watchlistBtn.textContent = movie.watchlist ? 'On Watchlist' : 'Off Watchlist';
+    watchlistBtn.addEventListener('click', async () => {
+        try {
+            const url = `http://localhost:3000/api/movies/${encodeURIComponent(id)}/watchlist`;
+            const res = await fetch(url, { method: 'PATCH' });  
+            if (!res.ok) throw new Error('Failed to update movie'); 
+            const updatedMovie = await res.json();
+            movie.watchlist = updatedMovie.watchlist;   
+            watchlistBtn.textContent = movie.watchlist 
+            ? 'On Watchlist' 
+            : 'Off Watchlist';
+            watchlistBtn.setAttribute(
+                'aria-label', 
+                `${movie.watchlist ? 'On Watchlist' : 'Off Watchlist'} for ${movie.title}`);
+            window.location.reload();
+        }
+        catch (err) {
+            console.error('Error updating movie:', err);
+            alert('Could not update movie. See console for details.');
+            return;
+        }
+    });
+    
 
     const back = document.createElement('a');
     back.href = 'index.html#my-movies';
@@ -82,6 +87,7 @@ function renderMovie(movie) {
     body.appendChild(genre);
     body.appendChild(rating);
     body.appendChild(watched);
+    body.appendChild(watchlistBtn);
     body.appendChild(back);
 
     card.appendChild(poster);
