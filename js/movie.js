@@ -76,7 +76,34 @@ function renderMovie(movie) {
             return;
         }
     });
-    
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.type = 'button';
+    deleteBtn.textContent = 'Delete Movie';
+    deleteBtn.style.backgroundColor = '#dc2626';
+    deleteBtn.style.color = 'white';
+    deleteBtn.style.marginLeft = '0.5rem';
+    deleteBtn.addEventListener('click', async () => {
+        const confirmDelete = confirm(`Are you sure you want to delete "${movie.title}"? This action cannot be undone.`);
+        if (!confirmDelete) return;
+
+        try {
+            const url = `http://localhost:3000/api/movies/${encodeURIComponent(id)}`;
+            const res = await fetch(url, { method: 'DELETE' });
+            
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({}));
+                throw new Error(errorData.error || `Failed to delete movie (status ${res.status})`);
+            }
+
+            alert(`"${movie.title}" has been deleted successfully.`);
+            window.location.href = 'index.html#movie-list';
+        }
+        catch (err) {
+            console.error('Error deleting movie:', err);
+            alert('Could not delete movie. Please try again.');
+        }
+    });
 
     const back = document.createElement('a');
     back.href = 'index.html#my-movies';
@@ -88,6 +115,7 @@ function renderMovie(movie) {
     body.appendChild(rating);
     body.appendChild(watched);
     body.appendChild(watchlistBtn);
+    body.appendChild(deleteBtn);
     body.appendChild(back);
 
     card.appendChild(poster);

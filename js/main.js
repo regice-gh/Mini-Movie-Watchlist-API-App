@@ -26,7 +26,7 @@ async function fetchMovies() {
         poster.alt = movie.title + ' poster';
         poster.width = 72;
         poster.height = 100;
-        poster.src =  ('img/' + (movie.title ? movie.title.toLowerCase().replace(/\s+/g,'') : 'placeholder') + '.png');
+        poster.src =  ('img/' + (movie.title ? movie.title.toLowerCase().replace(/\s+/g,'') : 'placeholder') + '.png') || 'img/placeholder.png';
 
         const body = document.createElement('div');
         body.className = 'card-body';

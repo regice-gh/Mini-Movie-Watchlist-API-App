@@ -8,7 +8,7 @@
 </head>
 <body>
     <header class="site-header">
-        <nav class="navbar" role="navigation" aria-label="Main navigation">
+        <nav class="navbar" aria-label="Main navigation">
             <div class="nav-brand">
                 <a href="index.html#home" class="brand-link">Mini Movie<span class="brand-dot">•</span></a>
             </div>
@@ -25,10 +25,9 @@
             </ul>
         </nav>
     </header>
-    <body>
         <main class="container">
             <h1>Add a New Movie</h1>
-            <form id="add-movie-form">
+            <form id="add-movie-form" class="panel">
                 <div>
                     <label for="title">Title:</label>
                     <input type="text" id="title" name="title" required>
@@ -38,8 +37,8 @@
                     <input type="number" id="year" name="year" required>
                 </div>
                 <div>
-                    <label for="genre">Genre:</label>
-                    <input type="text" id="genre" name="genre" required>
+                    <label for="genre">Choose a genre:</label>
+                    <select id="genre" name="genre" required>
                 </div>
                 <div>
                     <label for="rating">Rating:</label>
@@ -48,7 +47,6 @@
                 <button type="submit">Add Movie</button>
             </form>
         </main>
-    </body>
     <script src="js/main.js"></script>
     <script src="js/addMovie.js"></script>
 </body>

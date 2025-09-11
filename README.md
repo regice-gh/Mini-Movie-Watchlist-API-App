@@ -9,26 +9,27 @@ Core Idea
 
 Eisen (must-haves):
 1.	User can add a movie to their list (title, year, genre).
-2.	User can edit a movie entry.
+2.	User can edit a movie entry. 
 3.	User can delete a movie.
-4.	User can mark movies as watched/unwatched.
-5.	The app shows the full list.
+4.	User can mark movies on watchlist/ off watchlist. ✅
+5.	The app shows the full list. ✅
    
 Wensen (nice-to-haves):
-•	Rating system (1–5 stars).
+•	Rating system (1–5 stars). 
 •	Search/filter by genre or by “watched.”
 •	Show a “Top 5 movies” endpoint.
 •	Integration with a public API (optional: fetch poster images from OMDB API).
+•   show the movie with a public API
 
 Endpoints
 CRUD:
-•	GET /movies → get all movies
-•	GET /movies/{id} → get single movie
-•	POST /movies → add movie
-•	PUT /movies/{id} → update movie
-•	DELETE /movies/{id} → delete movie
+•	GET /movies → get all movies ✅
+•	GET /movies/{id} → get single movie ✅
+•	POST /movies → add movie ✅
+•	PUT /movies/{id} → update movie ✅
+•	DELETE /movies/{id} → delete movie ✅
 Extra endpoints (API design style):
-•	PATCH /movies/{id}/watched → toggle watched/unwatched
+•	PATCH /movies/{id}/watchlist → toggle off watchlist/on watchlist ✅
 •	GET /movies/top5 → return top 5 highest-rated movies
 
 Database (MySQL)
@@ -39,12 +40,13 @@ Movies Table
 •	genre (string)✅
 •	rating (int, optional)✅
 •	watched (boolean, default false)✅
+•   watchlist (boolean, default false)
 •   img (URL or PNG) ✅
 
 Frontend
 Keep it simple — plain JS with fetch:
-•	A list that shows all movies. 
-•	Buttons to add, edit, delete.
-•	A checkbox or toggle for “watched.”
-•	Maybe a little “Top 5” section.
+•	A list that shows all movies. ✅
+•	Buttons to add, edit, delete. 
+•	A checkbox or toggle for “watched.” ✅
+•	Maybe a little “Top 5” section. 
 
