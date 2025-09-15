@@ -15,7 +15,7 @@ async function fetchMovie(id) {
     }
 }
 
-function renderMovie(movie) {
+function renderMovie(movie, id) {
     const card = document.getElementById('detail-card');
     if (!card) return;
     card.innerHTML = '';
@@ -129,5 +129,5 @@ function renderMovie(movie) {
         return;
     }
     const movie = await fetchMovie(id);
-    renderMovie(movie);
+    renderMovie(movie, id);
 })();
