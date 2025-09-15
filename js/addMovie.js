@@ -1,22 +1,24 @@
 document.addEventListener('DOMContentLoaded', function () {
   const form = document.getElementById('add-movie-form');
-  if (!form) return;
 
   const submitButton = form.querySelector('button[type="submit"]');
-  const apiBase = 'http://localhost:3000/api/movies';
+  const apiMovies = 'http://localhost:3000/api/movies';
 
   async function handleSubmit(event) {
     event.preventDefault();
 
     const titleInput = document.getElementById('title');
     const yearInput = document.getElementById('year');
-    const genreInput = document.getElementById('genre');
+    const genreselect = document.getElementById('genre');
     const ratingInput = document.getElementById('rating');
+
+    
 
     const title = (titleInput?.value || '').trim();
     const year = yearInput?.value ? Number(yearInput.value) : null;
-    const genre = (genreInput?.value || '').trim();
+    const genre = (genreselect?.value || '').trim();
     const rating = ratingInput?.value !== '' ? Number(ratingInput.value) : null;
+    
 
     if (!title) {
       alert('Please enter a title.');
@@ -29,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function () {
     try {
       submitButton && (submitButton.disabled = true);
 
-      const res = await fetch(apiBase, {
+      const res = await fetch(apiMovies, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

@@ -1,6 +1,6 @@
 async function fetchMovies() {
   try {
-
+    console.log('Fetching movies...');
     const response = await fetch('http://localhost:3000/api/movies');
 
     if (!response.ok) {
@@ -156,6 +156,7 @@ async function fetchMyMovies() {
 }
 async function fetchWatchListMovies() {
     try {
+        console.log('Fetching watchlist movies...');
         const response = await fetch('http://localhost:3000/api/movies');
 
         if (!response.ok) {
@@ -211,6 +212,7 @@ async function fetchWatchListMovies() {
                 watchlistBtn.textContent = movie.watchlist ? 'On Watchlist' : 'Off Watchlist';
                 watchlistBtn.addEventListener('click', async () => {
                     try {
+                        console.log("fetching watchlist");
                         const url = `http://localhost:3000/api/movies/${encodeURIComponent(id)}/watchlist`;
                         const res = await fetch(url, { method: 'PATCH' });
 
@@ -228,6 +230,7 @@ async function fetchWatchListMovies() {
                         window.location.reload();
                     }
                     catch (err) {
+                        console.log("error updating watchlist");
                         console.error('Error updating movie:', err);
                         alert('Could not update movie. See console for details.');
                         return;
