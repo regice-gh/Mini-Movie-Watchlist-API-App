@@ -1,4 +1,4 @@
-//update database with `npm run populate-db` command
+//update database with `npm run populate-db`
 
 require('dotenv').config();
 const mysql = require('mysql2/promise');
