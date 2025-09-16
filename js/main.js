@@ -6,8 +6,9 @@ async function fetchMovies() {
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    // Parse JSON response in object
+    
     const movies = await response.json();
+    console.log('Fetched movies:', movies);
 
     const movieListElement = document.getElementById('movieList');
 
@@ -26,18 +27,21 @@ async function fetchMovies() {
         poster.alt = movie.title + ' poster';
         poster.width = 72;
         poster.height = 100;
-        poster.src =  ('img/' + (movie.title ? movie.title.toLowerCase().replace(/\s+/g,'') : 'placeholder') + '.png') || 'img/placeholder.png';
+        poster.src = ('img/' + (movie.title ? movie.title.toLowerCase().replace(/\s+/g,'') : 'placeholder') + '.png') || movie.poster_url;
+        poster.onerror = function() {
+            this.src = 'img/placeholder.png';
+        };
 
         const body = document.createElement('div');
         body.className = 'card-body';
 
         const h3 = document.createElement('h3');
         h3.className = 'card-title';
-        h3.textContent = `${movie.title} (${movie.year || ''})`;
+        h3.textContent = `${movie.title} (${movie.year || 'Unknown'})`;
 
         const p = document.createElement('p');
         p.className = 'card-text';
-        p.textContent = `${movie.genre || 'Unknown genre'} • Rating: ${movie.rating || '-'} • Watched: ${movie.watched ? 'Yes' : 'No'}`;
+        p.textContent = `${movie.genre || 'Unknown genre'} • Rating: ${movie.rating || 'Not rated'} • Watched: ${movie.watched ? 'Yes' : 'No'}`;
 
         const openBtn = document.createElement('button');
         openBtn.type = 'button';
@@ -49,29 +53,45 @@ async function fetchMovies() {
 
         const watchlistBtn = document.createElement('button');
         watchlistBtn.type = 'button';
-        watchlistBtn.textContent = movie.watchlist ? 'On Watchlist' : 'Off Watchlist';
+        watchlistBtn.textContent = movie.watchlist ? 'Remove from Watchlist' : 'Add to Watchlist';
+        watchlistBtn.className = movie.watchlist ? 'btn-secondary' : 'btn-primary';
         watchlistBtn.addEventListener('click', async () => {
             try {
+                watchlistBtn.disabled = true;
+                watchlistBtn.textContent = 'Updating...';
+                
                 const url = `http://localhost:3000/api/movies/${encodeURIComponent(id)}/watchlist`;
+                console.log('Toggling watchlist for movie:', id);
+                
                 const res = await fetch(url, { method: 'PATCH' });
                 
-                if (!res.ok) throw new Error('Failed to update movie');
+                if (!res.ok) {
+                    const errorData = await res.json().catch(() => ({}));
+                    throw new Error(errorData.error || 'Failed to update movie');
+                }
 
                 const updatedMovie = await res.json();
-                movie.watchlist = updatedMovie.watchlist;
-
-                watchlistBtn.textContent = movie.watchlist 
-                ? 'On Watchlist' 
-                : 'Off Watchlist';
+                console.log('Updated movie:', updatedMovie);
+                
+                // Update the button text and class
+                watchlistBtn.textContent = updatedMovie.watchlist ? 'Remove from Watchlist' : 'Add to Watchlist';
+                watchlistBtn.className = updatedMovie.watchlist ? 'btn-secondary' : 'btn-primary';
                 watchlistBtn.setAttribute(
                     'aria-label', 
-                    `${movie.watchlist ? 'On Watchlist' : 'Off Watchlist'} for ${movie.title}`);
-                window.location.reload();
-            }
-            catch (err) {
-                console.error('Error updating movie:', err);
-                alert('Could not update movie. See console for details.');
-                return;
+                    `${updatedMovie.watchlist ? 'Remove from' : 'Add to'} watchlist for ${movie.title}`);
+                
+                // Update the movie object
+                movie.watchlist = updatedMovie.watchlist;
+                
+                // Refresh other sections that might show this movie
+                fetchMyMovies();
+                fetchWatchListMovies();
+                
+            } catch (err) {
+                console.error('Error updating movie watchlist:', err);
+                alert('Could not update movie. Please try again.');
+            } finally {
+                watchlistBtn.disabled = false;
             }
         });
 
@@ -89,7 +109,9 @@ async function fetchMovies() {
   } catch (error) {
     console.error('Could not fetch movies:', error);
     const movieListElement = document.getElementById('movieList');
-    movieListElement.innerHTML = '<li>Failed to load movies.</li>';
+    if (movieListElement) {
+        movieListElement.innerHTML = '<div class="error">Failed to load movies. Please check if the server is running.</div>';
+    }
   }
 }
 
@@ -105,7 +127,7 @@ async function fetchMyMovies() {
         const placeholder = document.getElementById('myPlaceholder');
 
         if (!movieListElement) return;
-        movieListElement.innerHTML = ''; // Clear existing list
+        movieListElement.innerHTML = '';
 
         let watchedCount = 0;
         movies.forEach(movie => {
@@ -117,19 +139,21 @@ async function fetchMyMovies() {
                 const poster = document.createElement('img');
                 poster.className = 'poster';
                 poster.alt = movie.title + ' poster';
-                poster.src =  ('img/' + (movie.title ? movie.title.toLowerCase().replace(/\s+/g,'') : 'placeholder') + '.png');
-
+                poster.src = ('img/' + (movie.title ? movie.title.toLowerCase().replace(/\s+/g,'') : 'placeholder') + '.png' || movie.poster_url);
+                poster.onerror = function() {
+                    this.src = 'img/placeholder.png';
+                };
 
                 const body = document.createElement('div');
                 body.className = 'card-body';
 
                 const h3 = document.createElement('h3');
                 h3.className = 'card-title';
-                h3.textContent = `${movie.title} (${movie.year || ''})`;
+                h3.textContent = `${movie.title} (${movie.year || 'Unknown'})`;
 
                 const p = document.createElement('p');
                 p.className = 'card-text';
-                p.textContent = `${movie.genre || 'Unknown genre'} • Rating: ${movie.rating || '-'} `;
+                p.textContent = `${movie.genre || 'Unknown genre'} • Rating: ${movie.rating || 'Not rated'}`;
 
                 body.appendChild(h3);
                 body.appendChild(p);
@@ -141,19 +165,16 @@ async function fetchMyMovies() {
             }
         });
 
-        
-
-        // hide placeholder if watched movies exist
+        // Show/hide placeholder
         if (placeholder) {
-            if (watchedCount > 0) placeholder.style.display = 'none';
-            else placeholder.style.display = '';
+            placeholder.style.display = watchedCount > 0 ? 'none' : '';
         }
 
-
     } catch (error) {
-        console.error('Could not fetch movies:', error);
+        console.error('Could not fetch watched movies:', error);
     }
 }
+
 async function fetchWatchListMovies() {
     try {
         console.log('Fetching watchlist movies...');
@@ -169,7 +190,7 @@ async function fetchWatchListMovies() {
         const placeholder = document.getElementById('myPlaceholderWatchlist');
 
         if (!movieListElement) return;
-        movieListElement.innerHTML = ''; // Clear existing list
+        movieListElement.innerHTML = '';
 
         let watchlistCount = 0;
         movies.forEach(movie => {
@@ -185,19 +206,21 @@ async function fetchWatchListMovies() {
                 poster.alt = movie.title + ' poster';
                 poster.width = 72;
                 poster.height = 100;
-                poster.src =  ('img/' + (movie.title ? movie.title.toLowerCase().replace(/\s+/g,'') : 'placeholder') + '.png');
-
+                poster.src = ('img/' + (movie.title ? movie.title.toLowerCase().replace(/\s+/g,'') : 'placeholder') + '.png' || movie.poster_url);
+                poster.onerror = function() {
+                    this.src = 'img/placeholder.png';
+                };
 
                 const body = document.createElement('div');
                 body.className = 'card-body';
 
                 const h3 = document.createElement('h3');
                 h3.className = 'card-title';
-                h3.textContent = `${movie.title} (${movie.year || ''})`;
+                h3.textContent = `${movie.title} (${movie.year || 'Unknown'})`;
 
                 const p = document.createElement('p');
                 p.className = 'card-text';
-                p.textContent = `${movie.genre || 'Unknown genre'} • Rating: ${movie.rating || '-'} `;
+                p.textContent = `${movie.genre || 'Unknown genre'} • Rating: ${movie.rating || 'Not rated'}`;
 
                 const openBtn = document.createElement('button');
                 openBtn.type = 'button';
@@ -209,37 +232,35 @@ async function fetchWatchListMovies() {
 
                 const watchlistBtn = document.createElement('button');
                 watchlistBtn.type = 'button';
-                watchlistBtn.textContent = movie.watchlist ? 'On Watchlist' : 'Off Watchlist';
+                watchlistBtn.textContent = 'Remove from Watchlist';
+                watchlistBtn.className = 'btn-secondary';
                 watchlistBtn.addEventListener('click', async () => {
                     try {
-                        console.log("fetching watchlist");
+                        watchlistBtn.disabled = true;
+                        watchlistBtn.textContent = 'Removing...';
+                        
                         const url = `http://localhost:3000/api/movies/${encodeURIComponent(id)}/watchlist`;
                         const res = await fetch(url, { method: 'PATCH' });
 
-                        if (!res.ok) throw new Error('Failed to update movie');
+                        if (!res.ok) {
+                            const errorData = await res.json().catch(() => ({}));
+                            throw new Error(errorData.error || 'Failed to update movie');
+                        }
 
-                        const updatedMovie = await res.json();
-                        movie.watchlist = updatedMovie.watchlist;
-
-                        watchlistBtn.textContent = movie.watchlist 
-                        ? 'On Watchlist' 
-                        : 'Off Watchlist';
-                        watchlistBtn.setAttribute(
-                            'aria-label', 
-                            `${movie.watchlist ? 'On Watchlist' : 'Off Watchlist'} for ${movie.title}`);
-                        window.location.reload();
-                    }
-                    catch (err) {
-                        console.log("error updating watchlist");
-                        console.error('Error updating movie:', err);
-                        alert('Could not update movie. See console for details.');
-                        return;
+                        // Refresh the watchlist and main movie list
+                        fetchWatchListMovies();
+                        fetchMovies();
+                        
+                    } catch (err) {
+                        console.error('Error updating watchlist:', err);
+                        alert('Could not update movie. Please try again.');
+                        watchlistBtn.disabled = false;
+                        watchlistBtn.textContent = 'Remove from Watchlist';
                     }
                 });
                 
                 body.appendChild(h3);
                 body.appendChild(p);
-                
                 body.appendChild(openBtn);
                 body.appendChild(watchlistBtn);
 
@@ -250,18 +271,17 @@ async function fetchWatchListMovies() {
             }
         });
 
-        // hide placeholder if watchlist movies is not empty
+        // Show/hide placeholder
         if (placeholder) {
-            if (watchlistCount > 0) placeholder.style.display = 'none';
-            else placeholder.style.display = '';
+            placeholder.style.display = watchlistCount > 0 ? 'none' : '';
         }
 
-
     } catch (error) {
-        console.error('Could not fetch movies:', error);
+        console.error('Could not fetch watchlist movies:', error);
     }
 }
 
+// Initialize all sections
 fetchMovies();
 fetchMyMovies();
 fetchWatchListMovies();

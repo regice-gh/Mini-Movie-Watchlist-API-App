@@ -12,16 +12,19 @@ document.addEventListener('DOMContentLoaded', function () {
         throw new Error(`Failed to fetch genres (status ${response.status})`);
       }
       return response.json();
-    }
-    )
+    })
     .then(genres => {
+      // Clear existing options except the first one
+      genreSelect.innerHTML = '<option value="">Select a genre...</option>';
+      
       genres.forEach(genre => {
         const option = document.createElement('option');
         option.value = genre.name;
         option.textContent = genre.name;
         genreSelect.appendChild(option);
       });
-    }).catch(err => {
+    })
+    .catch(err => {
       console.error('Error fetching genres:', err);
       alert('Could not load genres. Please try again later.');
     });
@@ -31,27 +34,47 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const titleInput = document.getElementById('title');
     const yearInput = document.getElementById('year');
-    const genreselect = document.getElementById('genre');
+    const genreSelect = document.getElementById('genre');
     const ratingInput = document.getElementById('rating');
 
     const title = (titleInput?.value || '').trim();
     const year = yearInput?.value ? Number(yearInput.value) : null;
-    const genre = genreselect?.value || null;
+    const genre = genreSelect?.value || null;
     const rating = ratingInput?.value !== '' ? Number(ratingInput.value) : null;
     
-
+    // Validation
     if (!title) {
       alert('Please enter a title.');
       titleInput?.focus();
       return;
     }
 
-    const payload = { title, year, genre, rating, watched: false, watchlist: false };
+    if (year && (year < 1800 || year > new Date().getFullYear() + 5)) {
+      alert('Please enter a valid year.');
+      yearInput?.focus();
+      return;
+    }
+
+    if (rating && (rating < 1 || rating > 5)) {
+      alert('Rating must be between 1 and 5.');
+      ratingInput?.focus();
+      return;
+    }
+
+    const payload = { 
+      title, 
+      year, 
+      genre: genre || null, 
+      rating, 
+      watched: false, 
+      watchlist: false 
+    };
 
     try {
       submitButton && (submitButton.disabled = true);
+      submitButton && (submitButton.textContent = 'Adding...');
 
-      console.log("Payload I sent:", payload);
+      console.log("Payload being sent:", payload);
 
       const res = await fetch(apiMovies, {
         method: 'POST',
@@ -59,28 +82,32 @@ document.addEventListener('DOMContentLoaded', function () {
         body: JSON.stringify(payload)
       });
       
-      console.log("Fetch Response object:", res);
-      
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || `Failed to add movie (status ${res.status})`);
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || `Failed to add movie (status ${res.status})`);
       }
       
       const created = await res.json();
       console.log("Server returned:", created);
 
-
-      alert(`Added: ${created.title}`);
-      window.location.href = 'index.html#movie-list';
+      alert(`Successfully added: ${created.title} (${created.year || 'Unknown year'})`);
+      
+      // Clear form
+      form.reset();
+      
+      // Redirect to home page
+      setTimeout(() => {
+        window.location.href = 'index.html#movie-list';
+      }, 500);
+      
     } catch (err) {
       console.error('Add movie error:', err);
-      alert('Could not add movie. Please try again.');
+      alert(`Could not add movie: ${err.message}`);
     } finally {
       submitButton && (submitButton.disabled = false);
+      submitButton && (submitButton.textContent = 'Add Movie');
     }
   }
 
   form.addEventListener('submit', handleSubmit);
 });
-
-
