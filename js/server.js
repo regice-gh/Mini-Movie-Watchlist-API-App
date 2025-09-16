@@ -29,6 +29,17 @@ app.get('/api/movies', async (req, res) => {
   }
 });
 
+app.get('/api/genres', async (req, res) => {
+  try{
+    const [rows] = await db.execute('SELECT * FROM genres');
+    res.json(rows);
+  }
+  catch(err){
+    console.error("Error fetching genres from database:", err);
+    res.status(500).json({ error: ' Failed to fetch genres'});
+  }
+});
+
 
 app.get('/api/movies/:id', async (req, res) => {
   const id = Number(req.params.id);
@@ -49,17 +60,25 @@ app.get('/api/movies/:id', async (req, res) => {
 
 app.post('/api/movies', async (req, res) => {
   const { title, year, genre, rating, watched = false, watchlist = false } = req.body;
-
   if (!title || typeof title !== 'string') {
     return res.status(400).json({ error: 'Missing or invalid title' });
   }
-
   try {
+    let genreId = null;
+    if (genre) {
+      const [rows] = await db.execute('SELECT id FROM genres WHERE name = ?', [genre]);
+      if (rows.length > 0) {
+        genreId = rows[0].id;
+      } else {
+        const [insertGenre] = await db.execute('INSERT INTO genres (name) VALUES (?)', [genre]);
+        genreId = insertGenre.insertId;
+      }
+    }
     const [result] = await db.execute(
-      'INSERT INTO movies (title, year, genre, rating, watched, watchlist) VALUES (?, ?, ?, ?, ?, ?)',
-      [title, year || null, genre || null, rating || null, watched ? 1 : 0, watchlist ? 1 : 0]
+      `INSERT INTO movies (title, year, genres_id, rating, watched, watchlist)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [title, year || null, genreId, rating || null, watched ? 1 : 0, watchlist ? 1 : 0]
     );
-
     const [newRows] = await db.execute('SELECT * FROM movies WHERE id = ?', [result.insertId]);
     res.status(201).json(newRows[0]);
   } catch (error) {
@@ -67,6 +86,7 @@ app.post('/api/movies', async (req, res) => {
     res.status(500).json({ error: 'Failed to add movie' });
   }
 });
+
 
 
 app.put('/api/movies/:id', async (req, res) => {

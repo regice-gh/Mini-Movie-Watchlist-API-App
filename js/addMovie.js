@@ -3,6 +3,28 @@ document.addEventListener('DOMContentLoaded', function () {
 
   const submitButton = form.querySelector('button[type="submit"]');
   const apiMovies = 'http://localhost:3000/api/movies';
+  const apiGenres = 'http://localhost:3000/api/genres';
+  const genreSelect = document.getElementById('genre');
+
+  fetch(apiGenres)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Failed to fetch genres (status ${response.status})`);
+      }
+      return response.json();
+    }
+    )
+    .then(genres => {
+      genres.forEach(genre => {
+        const option = document.createElement('option');
+        option.value = genre.name;
+        option.textContent = genre.name;
+        genreSelect.appendChild(option);
+      });
+    }).catch(err => {
+      console.error('Error fetching genres:', err);
+      alert('Could not load genres. Please try again later.');
+    });
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -12,11 +34,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const genreselect = document.getElementById('genre');
     const ratingInput = document.getElementById('rating');
 
-    
-
     const title = (titleInput?.value || '').trim();
     const year = yearInput?.value ? Number(yearInput.value) : null;
-    const genre = (genreselect?.value || '').trim();
+    const genre = genreselect?.value || null;
     const rating = ratingInput?.value !== '' ? Number(ratingInput.value) : null;
     
 
@@ -31,20 +51,25 @@ document.addEventListener('DOMContentLoaded', function () {
     try {
       submitButton && (submitButton.disabled = true);
 
+      console.log("Payload I sent:", payload);
+
       const res = await fetch(apiMovies, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-
+      
+      console.log("Fetch Response object:", res);
+      
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || `Failed to add movie (status ${res.status})`);
       }
-
+      
       const created = await res.json();
+      console.log("Server returned:", created);
 
-      // Simple success UX: notify and redirect back to home so lists refresh
+
       alert(`Added: ${created.title}`);
       window.location.href = 'index.html#movie-list';
     } catch (err) {
