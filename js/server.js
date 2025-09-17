@@ -113,32 +113,37 @@ app.put('/api/movies/:id', async (req, res) => {
   }
 });
 
-
 app.patch('/api/movies/:id/watchlist', async (req, res) => {
-  const id = Number(req.params.id);;
+  const id = Number(req.params.id);
 
   if (!Number.isInteger(id) || id <= 0) {
     return res.status(400).json({ error: 'Invalid id' });
   }
 
   try {
-    const [rows] = await db.execute(
+    const [[movie]] = await db.execute(
       'SELECT watchlist FROM movies WHERE id = ? LIMIT 1',
       [id]
     );
 
-    if (!rows.length) {
+    if (!movie) {
       return res.status(404).json({ error: 'Movie not found' });
     }
-
-    const [updatedRows] = await db.execute(
+    await db.execute(
+      'UPDATE movies SET watchlist = NOT watchlist WHERE id = ?',
+      [id]
+    );
+    const [[updatedMovie]] = await db.execute(
       'SELECT * FROM movies WHERE id = ?',
       [id]
     );
+    updatedMovie.watchlist = Boolean(updatedMovie.watchlist);
+    //updatedMovie.watched   = Boolean(updatedMovie.watched);   // optional, for consistency
 
-    res.json(updatedRows[0]);
+    res.json(updatedMovie);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error toggling watchlist for movie id', id, err);
+    res.status(500).json({ error: 'Failed to toggle watchlist' });
   }
 });
 
