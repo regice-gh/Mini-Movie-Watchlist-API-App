@@ -90,9 +90,6 @@ async function main() {
       INNER JOIN genres g ON m.genres_id = g.id
     `);
 
-    //console.log('Movies with genres:');
-    //console.table(rows);
-
   } catch (err) {
     console.error('Error:', err);
   } finally {

@@ -2,13 +2,41 @@ async function fetchMovies() {
   try {
     console.log('Fetching movies...');
     const response = await fetch('http://localhost:3000/api/movies');
+    const apiGenres = 'http://localhost:3000/api/genres';
+    
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     
     const movies = await response.json();
-    console.log('Fetched movies:', movies);
+
+    fetch(apiGenres)
+    .then(res => {
+        if (!res.ok){
+            throw new Error(`Failed to fetch genres (status ${res.status})`);
+        }
+        return res.json();
+    })
+    .then(genres => {
+        const genreMap = {};
+        genres.forEach(genre => {
+            genreMap[genre.id] = genre.name;
+        });
+        console.log('genreMap:', genreMap);
+
+        movies.forEach(movie => {
+            if (movie.genre && genreMap[movie.genre]){
+                movie.genre = genreMap[movie.genre];
+            }else{
+                movie.genre = 'Unknowngenre';
+            }
+        }
+    );})    
+    .catch(err => {
+        console.error('Error fetching genres:', err);
+    })
+
 
     const movieListElement = document.getElementById('movieList');
 
@@ -40,8 +68,11 @@ async function fetchMovies() {
         h3.textContent = `${movie.title} (${movie.year || 'Unknown'})`;
 
         const p = document.createElement('p');
-        p.className = 'card-text';
-        p.textContent = `${movie.genre || 'Unknown genre'} • Rating: ${movie.rating || 'Not rated'} • Watched: ${movie.watched ? 'Yes' : 'No'}`;
+        p.className = 'card-text';        
+        p.textContent = `${
+            movie.genre || 'Unknown genre'} 
+            • Rating: ${movie.rating || 'Not rated'} 
+            • Watched: ${movie.watched ? 'Yes' : 'No'}`;
 
         const openBtn = document.createElement('button');
         openBtn.type = 'button';
@@ -73,17 +104,14 @@ async function fetchMovies() {
                 const updatedMovie = await res.json();
                 console.log('Updated movie:', updatedMovie);
                 
-                // Update the button text and class
                 watchlistBtn.textContent = updatedMovie.watchlist ? 'Remove from Watchlist' : 'Add to Watchlist';
                 watchlistBtn.className = updatedMovie.watchlist ? 'btn-secondary' : 'btn-primary';
                 watchlistBtn.setAttribute(
                     'aria-label', 
                     `${updatedMovie.watchlist ? 'Remove from' : 'Add to'} watchlist for ${movie.title}`);
                 
-                // Update the movie object
                 movie.watchlist = updatedMovie.watchlist;
                 
-                // Refresh other sections that might show this movie
                 fetchMyMovies();
                 fetchWatchListMovies();
                 
@@ -165,7 +193,6 @@ async function fetchMyMovies() {
             }
         });
 
-        // Show/hide placeholder
         if (placeholder) {
             placeholder.style.display = watchedCount > 0 ? 'none' : '';
         }

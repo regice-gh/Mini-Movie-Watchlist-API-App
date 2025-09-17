@@ -15,7 +15,7 @@ Eisen (must-haves):
 5.	The app shows the full list. ✅
    
 Wensen (nice-to-haves):
-•	Rating system (1–5 stars). 
+•	Rating system (1–5 stars). ✅
 •	Search/filter by genre or by “watched.”
 •	Show a “Top 5 movies” endpoint.
 •	Integration with a public API (optional: fetch poster images from OMDB API). ✅

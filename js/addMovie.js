@@ -14,7 +14,6 @@ document.addEventListener('DOMContentLoaded', function () {
       return response.json();
     })
     .then(genres => {
-      // Clear existing options except the first one
       genreSelect.innerHTML = '<option value="">Select a genre...</option>';
       
       genres.forEach(genre => {

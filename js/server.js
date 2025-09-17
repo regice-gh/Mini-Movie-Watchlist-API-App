@@ -125,7 +125,6 @@ app.patch('/api/movies/:id/watchlist', async (req, res) => {
       'SELECT watchlist FROM movies WHERE id = ? LIMIT 1',
       [id]
     );
-
     if (!movie) {
       return res.status(404).json({ error: 'Movie not found' });
     }
