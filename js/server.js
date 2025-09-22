@@ -1,4 +1,8 @@
 const express = require('express');
+const session = require('express-session');
+const { bypassLogin } = require('./middlewares');
+const { ensureAuthenticated } = require('./auth');
+
 const mysql = require('mysql2');
 const cors = require('cors');
 
@@ -8,6 +12,23 @@ const port = 3000;
 app.use(cors());
 app.use(express.json());
 
+app.use(express.static(__dirname + '/../'));
+
+app.use(session({
+  secret: 'mysecretkey',
+  resave: true,
+  saveUninitialized: false,
+  name: 'sessionId',
+  cookie: { maxAge: 2 * 60 * 60 * 1000 } // 2 hours
+}))
+
+app.use(express.urlencoded({ extended: true }));
+
+app.use((req, res, next) => {
+  res.locals.user = req.session.user;
+  next();
+});
+
 const db = mysql.createPool({
   host: 'localhost',
   user: 'root',
@@ -16,54 +37,110 @@ const db = mysql.createPool({
   waitForConnections: true,
 }).promise();
 
+app.get('/login', bypassLogin, (req, res) => {
+  res.redirect('login');
+});
 
-app.get('/api/movies', async (req, res) => {
+// Provide a simple home root that serves index.html (fallback for '/')
+app.get('/', (req, res) => {
+  res.sendFile(require('path').join(__dirname, '..', 'index.html'));
+});
+
+app.post('/login', bypassLogin, async (req, res, next) => {
+  const { username, password } = req.body;
+  if (!username || !password) {
+    return res.status(400).json({ error: 'Missing username or password' });
+  }
   try {
-    const [rows] = await db.execute('SELECT * FROM movies');
+    const [rows] = await db.execute(
+      'SELECT id, username FROM users WHERE username = ? AND password = ? LIMIT 1',
+      [username, password]
+    );
+    if (rows.length === 0) {
+      return res.status(401).json({ error: 'Invalid username or password' });
+    }
+    req.session.userId = rows[0].id;
+    req.session.user = { id: rows[0].id, username: rows[0].username };
+    res.json({ message: 'Login successful' });
+  } catch (error) {
+    console.error('Error during login:', error);
+    next(error);
+  }
+});
+app.post('/logout', ensureAuthenticated, (req, res, next) => {
+  req.session.destroy(err => {
+    if (err) {
+      console.error('Error during logout:', err);
+      return next(err);
+    }
+    res.clearCookie('sessionId');
+    res.json({ message: 'Logout successful' });
+  });
+});
 
-    res.json(rows);
+app.get('/api/movies', ensureAuthenticated, async (req, res, next) => {
+  try {
+    // Join genres to return the genre name as `genre` while keeping movie fields
+    const [rows] = await db.execute(
+      `SELECT m.*, g.name as genre
+       FROM movies m
+       LEFT JOIN genres g ON m.genres_id = g.id`
+    );
 
+    // Ensure boolean fields are proper booleans
+    const mapped = rows.map(r => ({ ...r, watched: Boolean(r.watched), watchlist: Boolean(r.watchlist) }));
+    res.json(mapped);
   } catch (error) {
     console.error("Error fetching movies from database:", error);
-    res.status(500).json({ error: 'Failed to fetch movies' });
+    next(error);
   }
 });
 
-app.get('/api/genres', async (req, res) => {
+app.get('/api/genres', ensureAuthenticated, async (req, res, next) => {
   try{
     const [rows] = await db.execute('SELECT * FROM genres');
     res.json(rows);
   }
   catch(err){
     console.error("Error fetching genres from database:", err);
-    res.status(500).json({ error: ' Failed to fetch genres'});
+    next(err);
   }
 });
 
 
-app.get('/api/movies/:id', async (req, res) => {
+app.get('/api/movies/:id', ensureAuthenticated, async (req, res, next) => {
   const id = Number(req.params.id);
   if (!Number.isFinite(id) || id <= 0) {
     return res.status(400).json({ error: 'Invalid id' });
   }
 
   try {
-    const [rows] = await db.execute('SELECT * FROM movies WHERE id = ?', [id]);
+    const [rows] = await db.execute(
+      `SELECT m.*, g.name as genre
+       FROM movies m
+       LEFT JOIN genres g ON m.genres_id = g.id
+       WHERE m.id = ? LIMIT 1`,
+      [id]
+    );
     if (!rows || rows.length === 0) return res.status(404).json({ error: 'Not found' });
-    return res.json(rows[0]);
+    const movie = rows[0];
+    movie.watchlist = Boolean(movie.watchlist);
+    movie.watched = Boolean(movie.watched);
+    return res.json(movie);
   } catch (err) {
     console.error('Error fetching movie by id:', err);
-    return res.status(500).json({ error: 'Failed to fetch movie' });
+    next(err);
   }
 });
 
 
-app.post('/api/movies', async (req, res) => {
+app.post('/api/movies', ensureAuthenticated, async (req, res, next) => {
   const { title, year, genre, rating, watched = false, watchlist = false } = req.body;
   if (!title || typeof title !== 'string') {
     return res.status(400).json({ error: 'Missing or invalid title' });
   }
   try {
+    // Resolve or create genre, store as genres_id
     let genreId = null;
     if (genre) {
       const [rows] = await db.execute('SELECT id FROM genres WHERE name = ?', [genre]);
@@ -74,22 +151,36 @@ app.post('/api/movies', async (req, res) => {
         genreId = insertGenre.insertId;
       }
     }
+
     const [result] = await db.execute(
       `INSERT INTO movies (title, year, genres_id, rating, watched, watchlist)
        VALUES (?, ?, ?, ?, ?, ?)`,
       [title, year || null, genreId, rating || null, watched ? 1 : 0, watchlist ? 1 : 0]
     );
-    const [newRows] = await db.execute('SELECT * FROM movies WHERE id = ?', [result.insertId]);
-    res.status(201).json(newRows[0]);
+
+    // Return the inserted movie joined with genre name
+    const [newRows] = await db.execute(
+      `SELECT m.*, g.name as genre
+       FROM movies m
+       LEFT JOIN genres g ON m.genres_id = g.id
+       WHERE m.id = ?`,
+      [result.insertId]
+    );
+    const movie = newRows[0];
+    if (movie) {
+      movie.watchlist = Boolean(movie.watchlist);
+      movie.watched = Boolean(movie.watched);
+    }
+    res.status(201).json(movie);
   } catch (error) {
     console.error('Error adding movie to database:', error);
-    res.status(500).json({ error: 'Failed to add movie' });
+    next(error);
   }
 });
 
 
 
-app.put('/api/movies/:id', async (req, res) => {
+app.put('/api/movies/:id', ensureAuthenticated, async (req, res, next) => {
   const id = Number(req.params.id);
   if (!Number.isFinite(id) || id <= 0) {
     return res.status(400).json({ error: 'Invalid id' });
@@ -97,23 +188,42 @@ app.put('/api/movies/:id', async (req, res) => {
   const { title, year, genre, rating, watched, watchlist } = req.body;
 
   try {
+    // If a genre name is provided, resolve/insert to get genres_id
+    let genreId = null;
+    if (genre) {
+      const [grows] = await db.execute('SELECT id FROM genres WHERE name = ?', [genre]);
+      if (grows.length > 0) genreId = grows[0].id;
+      else {
+        const [insertGenre] = await db.execute('INSERT INTO genres (name) VALUES (?)', [genre]);
+        genreId = insertGenre.insertId;
+      }
+    }
+
     const [result] = await db.execute(
-      'UPDATE movies SET title = ?, year = ?, genre = ?, rating = ?, watched = ?, watchlist = ? WHERE id = ?',
-      [title, year || null, genre || null, rating || null, watched ? 1 : 0, watchlist ? 1 : 0, id]
+      'UPDATE movies SET title = ?, year = ?, genres_id = ?, rating = ?, watched = ?, watchlist = ? WHERE id = ?',
+      [title, year || null, genreId, rating || null, watched ? 1 : 0, watchlist ? 1 : 0, id]
     );
-    
 
     if (result.affectedRows === 0) return res.status(404).json({ error: 'Not found' });
 
-    const [rows] = await db.execute('SELECT * FROM movies WHERE id = ?', [id]);
-    res.json(rows[0]);
+    const [rows] = await db.execute(
+      `SELECT m.*, g.name as genre
+       FROM movies m
+       LEFT JOIN genres g ON m.genres_id = g.id
+       WHERE m.id = ?`,
+      [id]
+    );
+
+    const movie = rows[0];
+    if (movie) { movie.watchlist = Boolean(movie.watchlist); movie.watched = Boolean(movie.watched); }
+    res.json(movie);
   } catch (error) {
     console.error('Error updating movie in database:', error);
-    res.status(500).json({ error: 'Failed to update movie' });
+    next(error);
   }
 });
 
-app.patch('/api/movies/:id/watchlist', async (req, res) => {
+app.patch('/api/movies/:id/watchlist', ensureAuthenticated, async (req, res, next) => {
   const id = Number(req.params.id);
 
   if (!Number.isInteger(id) || id <= 0) {
@@ -132,23 +242,25 @@ app.patch('/api/movies/:id/watchlist', async (req, res) => {
       'UPDATE movies SET watchlist = NOT watchlist WHERE id = ?',
       [id]
     );
-    const [[updatedMovie]] = await db.execute(
-      'SELECT * FROM movies WHERE id = ?',
+    const [rows] = await db.execute(
+      `SELECT m.*, g.name as genre
+       FROM movies m
+       LEFT JOIN genres g ON m.genres_id = g.id
+       WHERE m.id = ?`,
       [id]
     );
-    updatedMovie.watchlist = Boolean(updatedMovie.watchlist);
-    //updatedMovie.watched   = Boolean(updatedMovie.watched);   // optional, for consistency
-
+    const updatedMovie = rows[0];
+    if (updatedMovie) { updatedMovie.watchlist = Boolean(updatedMovie.watchlist); updatedMovie.watched = Boolean(updatedMovie.watched); }
     res.json(updatedMovie);
   } catch (err) {
     console.error('Error toggling watchlist for movie id', id, err);
-    res.status(500).json({ error: 'Failed to toggle watchlist' });
+    next(err);
   }
 });
 
 
 
-app.delete('/api/movies/:id', async (req, res) => {
+app.delete('/api/movies/:id', ensureAuthenticated, async (req, res, next) => {
   const id = Number(req.params.id);
   if (!Number.isFinite(id) || id <= 0) {
     return res.status(400).json({ error: 'Invalid id' });
@@ -159,8 +271,15 @@ app.delete('/api/movies/:id', async (req, res) => {
     res.sendStatus(204);
   } catch (error) {
     console.error('Error deleting movie from database:', error);
-    res.status(500).json({ error: 'Failed to delete movie' });
+    next(error);
   } 
+});
+
+// Global error handler (must be after all routes)
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  if (res.headersSent) return next(err);
+  res.status(500).json({ error: 'Internal server error' });
 });
 
 

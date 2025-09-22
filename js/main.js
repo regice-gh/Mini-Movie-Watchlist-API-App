@@ -29,7 +29,7 @@ async function fetchMovies() {
             if (movie.genre && genreMap[movie.genre]){
                 movie.genre = genreMap[movie.genre];
             }else{
-                movie.genre = 'Unknowngenre';
+                movie.genre = 'Unknown genre';
             }
         }
     );})    

@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
 
-    if (year && (year < 1800 || year > new Date().getFullYear() + 5)) {
+    if (year && (year < 1888 || year > new Date().getFullYear() + 5)) {
       alert('Please enter a valid year.');
       yearInput?.focus();
       return;
