@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function () {
     })
     .then(genres => {
       genreSelect.innerHTML = '<option value="">Select a genre...</option>';
-      
+
       genres.forEach(genre => {
         const option = document.createElement('option');
         option.value = genre.name;
@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const year = yearInput?.value ? Number(yearInput.value) : null;
     const genre = genreSelect?.value || null;
     const rating = ratingInput?.value !== '' ? Number(ratingInput.value) : null;
-    
+
     // Validation
     if (!title) {
       alert('Please enter a title.');
@@ -60,13 +60,13 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
 
-    const payload = { 
-      title, 
-      year, 
-      genre: genre || null, 
-      rating, 
-      watched: false, 
-      watchlist: false 
+    const payload = {
+      title,
+      year,
+      genre: genre || null,
+      rating,
+      watched: false,
+      watchlist: false
     };
 
     try {
@@ -80,25 +80,25 @@ document.addEventListener('DOMContentLoaded', function () {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      
+
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
         throw new Error(errorData.error || `Failed to add movie (status ${res.status})`);
       }
-      
+
       const created = await res.json();
       console.log("Server returned:", created);
 
       alert(`Successfully added: ${created.title} (${created.year || 'Unknown year'})`);
-      
+
       // Clear form
       form.reset();
-      
+
       // Redirect to home page
       setTimeout(() => {
         window.location.href = 'index.html#movie-list';
       }, 500);
-      
+
     } catch (err) {
       console.error('Add movie error:', err);
       alert(`Could not add movie: ${err.message}`);

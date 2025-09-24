@@ -1,33 +1,17 @@
 const express = require('express');
-const session = require('express-session');
-const { bypassLogin } = require('./middlewares');
-const { ensureAuthenticated } = require('./auth');
 
 const mysql = require('mysql2');
 const cors = require('cors');
 
 const app = express();
-const port = 3000; 
+const port = 3000;
 
 app.use(cors());
 app.use(express.json());
 
 app.use(express.static(__dirname + '/../'));
 
-app.use(session({
-  secret: 'mysecretkey',
-  resave: true,
-  saveUninitialized: false,
-  name: 'sessionId',
-  cookie: { maxAge: 2 * 60 * 60 * 1000 } // 2 hours
-}))
 
-app.use(express.urlencoded({ extended: true }));
-
-app.use((req, res, next) => {
-  res.locals.user = req.session.user;
-  next();
-});
 
 const db = mysql.createPool({
   host: 'localhost',
@@ -37,48 +21,7 @@ const db = mysql.createPool({
   waitForConnections: true,
 }).promise();
 
-app.get('/login', bypassLogin, (req, res) => {
-  res.redirect('login');
-});
-
-// Provide a simple home root that serves index.html (fallback for '/')
-app.get('/', (req, res) => {
-  res.sendFile(require('path').join(__dirname, '..', 'index.html'));
-});
-
-app.post('/login', bypassLogin, async (req, res, next) => {
-  const { username, password } = req.body;
-  if (!username || !password) {
-    return res.status(400).json({ error: 'Missing username or password' });
-  }
-  try {
-    const [rows] = await db.execute(
-      'SELECT id, username FROM users WHERE username = ? AND password = ? LIMIT 1',
-      [username, password]
-    );
-    if (rows.length === 0) {
-      return res.status(401).json({ error: 'Invalid username or password' });
-    }
-    req.session.userId = rows[0].id;
-    req.session.user = { id: rows[0].id, username: rows[0].username };
-    res.json({ message: 'Login successful' });
-  } catch (error) {
-    console.error('Error during login:', error);
-    next(error);
-  }
-});
-app.post('/logout', ensureAuthenticated, (req, res, next) => {
-  req.session.destroy(err => {
-    if (err) {
-      console.error('Error during logout:', err);
-      return next(err);
-    }
-    res.clearCookie('sessionId');
-    res.json({ message: 'Logout successful' });
-  });
-});
-
-app.get('/api/movies', ensureAuthenticated, async (req, res, next) => {
+app.get('/api/movies', async (req, res, next) => {
   try {
     // Join genres to return the genre name as `genre` while keeping movie fields
     const [rows] = await db.execute(
@@ -96,19 +39,19 @@ app.get('/api/movies', ensureAuthenticated, async (req, res, next) => {
   }
 });
 
-app.get('/api/genres', ensureAuthenticated, async (req, res, next) => {
-  try{
+app.get('/api/genres', async (req, res, next) => {
+  try {
     const [rows] = await db.execute('SELECT * FROM genres');
     res.json(rows);
   }
-  catch(err){
+  catch (err) {
     console.error("Error fetching genres from database:", err);
     next(err);
   }
 });
 
 
-app.get('/api/movies/:id', ensureAuthenticated, async (req, res, next) => {
+app.get('/api/movies/:id', async (req, res, next) => {
   const id = Number(req.params.id);
   if (!Number.isFinite(id) || id <= 0) {
     return res.status(400).json({ error: 'Invalid id' });
@@ -134,7 +77,7 @@ app.get('/api/movies/:id', ensureAuthenticated, async (req, res, next) => {
 });
 
 
-app.post('/api/movies', ensureAuthenticated, async (req, res, next) => {
+app.post('/api/movies', async (req, res, next) => {
   const { title, year, genre, rating, watched = false, watchlist = false } = req.body;
   if (!title || typeof title !== 'string') {
     return res.status(400).json({ error: 'Missing or invalid title' });
@@ -180,7 +123,7 @@ app.post('/api/movies', ensureAuthenticated, async (req, res, next) => {
 
 
 
-app.put('/api/movies/:id', ensureAuthenticated, async (req, res, next) => {
+app.put('/api/movies/:id', async (req, res, next) => {
   const id = Number(req.params.id);
   if (!Number.isFinite(id) || id <= 0) {
     return res.status(400).json({ error: 'Invalid id' });
@@ -223,7 +166,7 @@ app.put('/api/movies/:id', ensureAuthenticated, async (req, res, next) => {
   }
 });
 
-app.patch('/api/movies/:id/watchlist', ensureAuthenticated, async (req, res, next) => {
+app.patch('/api/movies/:id/watchlist', async (req, res, next) => {
   const id = Number(req.params.id);
 
   if (!Number.isInteger(id) || id <= 0) {
@@ -260,7 +203,7 @@ app.patch('/api/movies/:id/watchlist', ensureAuthenticated, async (req, res, nex
 
 
 
-app.delete('/api/movies/:id', ensureAuthenticated, async (req, res, next) => {
+app.delete('/api/movies/:id', async (req, res, next) => {
   const id = Number(req.params.id);
   if (!Number.isFinite(id) || id <= 0) {
     return res.status(400).json({ error: 'Invalid id' });
@@ -272,17 +215,8 @@ app.delete('/api/movies/:id', ensureAuthenticated, async (req, res, next) => {
   } catch (error) {
     console.error('Error deleting movie from database:', error);
     next(error);
-  } 
+  }
 });
-
-// Global error handler (must be after all routes)
-app.use((err, req, res, next) => {
-  console.error('Unhandled error:', err);
-  if (res.headersSent) return next(err);
-  res.status(500).json({ error: 'Internal server error' });
-});
-
-
 
 app.listen(port, () => {
   console.log(`Movie API server listening on http://localhost:${port}`);

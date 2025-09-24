@@ -28,7 +28,7 @@ function renderMovie(movie, id) {
     const poster = document.createElement('img');
     poster.className = 'poster';
     poster.alt = movie.title + ' poster';
-    poster.src =  ('img/' + (movie.title ? movie.title.toLowerCase().replace(/\s+/g,'') : 'placeholder') + '.png');
+    poster.src = ('img/' + (movie.title ? movie.title.toLowerCase().replace(/\s+/g, '') : 'placeholder') + '.png');
 
     poster.style.width = '200px';
     poster.style.height = '300px';
@@ -58,16 +58,20 @@ function renderMovie(movie, id) {
     watchlistBtn.addEventListener('click', async () => {
         try {
             const url = `http://localhost:3000/api/movies/${encodeURIComponent(id)}/watchlist`;
-            const res = await fetch(url, { method: 'PATCH' });  
-            if (!res.ok) throw new Error('Failed to update movie'); 
+            const res = await fetch(url, { method: 'PATCH' });
+
+            if (!res.ok) throw new Error('Failed to update movie');
+
             const updatedMovie = await res.json();
-            movie.watchlist = updatedMovie.watchlist;   
-            watchlistBtn.textContent = movie.watchlist 
-            ? 'On Watchlist' 
-            : 'Off Watchlist';
+
+            movie.watchlist = updatedMovie.watchlist;
+            watchlistBtn.textContent = movie.watchlist
+                ? 'On Watchlist'
+                : 'Off Watchlist';
             watchlistBtn.setAttribute(
-                'aria-label', 
+                'aria-label',
                 `${movie.watchlist ? 'On Watchlist' : 'Off Watchlist'} for ${movie.title}`);
+
             window.location.reload();
         }
         catch (err) {
@@ -90,7 +94,7 @@ function renderMovie(movie, id) {
         try {
             const url = `http://localhost:3000/api/movies/${encodeURIComponent(id)}`;
             const res = await fetch(url, { method: 'DELETE' });
-            
+
             if (!res.ok) {
                 const errorData = await res.json().catch(() => ({}));
                 throw new Error(errorData.error || `Failed to delete movie (status ${res.status})`);

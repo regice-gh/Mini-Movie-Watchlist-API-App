@@ -9,8 +9,8 @@ const DB_PASS = process.env.DB_PASS || '';
 const DB_PORT = process.env.DB_PORT ? Number(process.env.DB_PORT) : 3306;
 
 const dummyGenres = [
-  'Action','Adventure','Animation','Comedy','Crime','Documentary',
-  'Drama','Fantasy','Horror','Mystery','Romance','Sci-Fi','Thriller'
+  'Action', 'Adventure', 'Animation', 'Comedy', 'Crime', 'Documentary',
+  'Drama', 'Fantasy', 'Horror', 'Mystery', 'Romance', 'Sci-Fi', 'Thriller'
 ];
 
 const dummyMovies = [
