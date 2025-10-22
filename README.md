@@ -3,9 +3,9 @@ heb deze Mini Movie Watchlist API App gemaakt als eindopdracht voor het vak API
 
 Features (Eisen & Wensen)
 Core Idea
-•	Users can create their own watchlist of movies/series. ✅
-•	They can add, edit, delete, and mark movies as “watched.” ✅
-•	Extra: rate movies and search/filter by genre or “watched/unwatched.”
+1.	Users can create their own watchlist of movies/series. ✅
+2.	They can add, edit, delete, and mark movies as “watched.” ✅
+3.	Extra: rate movies and search/filter by genre or “watched/unwatched.”
 
 Eisen (must-haves):
 1.	User can add a movie to their list (title, year, genre).✅
@@ -15,42 +15,42 @@ Eisen (must-haves):
 5.	The app shows the full list. ✅
    
 Wensen (nice-to-haves):
-•	Rating system (1–5 stars). ✅
-•	Search/filter by genre or by “watched.”
-•	Show a “Top 5 movies” endpoint.
-•	Integration with a public API (optional: fetch poster images from OMDB API). ✅
-•  show the movie with a public API. ✅
+1.	Rating system (1–5 stars). ✅
+2.	Search/filter by genre or by “watched.”
+3.	Show a “Top 5 movies” endpoint.
+4.	Integration with a public API (optional: fetch poster images from OMDB API). ✅
+5.  show the movie with a public API. ✅
 
 Endpoints
 CRUD:
-•	GET /movies → get all movies ✅
-•	GET /movies/{id} → get single movie ✅
-•	POST /movies → add movie ✅
-•	PUT /movies/{id} → update movie ✅
-•	DELETE /movies/{id} → delete movie ✅
+1.	GET /movies → get all movies ✅
+2.	GET /movies/{id} → get single movie ✅
+3.	POST /movies → add movie ✅
+4.	PUT /movies/{id} → update movie ✅
+5.	DELETE /movies/{id} → delete movie ✅
 Extra endpoints (API design style):
-•	PATCH /movies/{id}/watchlist → toggle off watchlist/on watchlist ✅
-•	GET /movies/top5 → return top 5 highest-rated movies
+1.	PATCH /movies/{id}/watchlist → toggle off watchlist/on watchlist ✅
+2.	GET /movies/top5 → return top 5 highest-rated movies
 
 Database (MySQL)
 Movies Table
-•	id (PK) ✅
-• genres_id (int, FK)
-•	title (string)✅
-•	year (int)✅
-•	rating (int, optional)✅
-•	watched (boolean, default false)✅
-• watchlist (boolean, default false) ✅
-• img (URL or PNG) ✅
-•	Foreign Key(genres_id)✅
+1.	id (PK) ✅
+2. genres_id (int, FK)
+3.	title (string)✅
+4.	year (int)✅
+5.	rating (int, optional)✅
+6.	watched (boolean, default false)✅
+7. watchlist (boolean, default false) ✅
+8. img (URL or PNG) ✅
+9.	Foreign Key(genres_id)✅
 
 Genre Table
-• Id (PK)
-• name (string)
+1. Id (PK)
+2. name (string)
 
 Frontend
 Keep it simple — plain JS with fetch:
-•	A list that shows all movies. ✅
-•	Buttons to add, edit, delete. ✅
-•	A checkbox or toggle for “watched.” ✅
-•	Maybe a little “Top 5” section. 
+1.	A list that shows all movies. ✅
+2.  Buttons to add, edit, delete. ✅
+3.	A checkbox or toggle for “watched.” ✅
+4.	Maybe a little “Top 5” section. 
