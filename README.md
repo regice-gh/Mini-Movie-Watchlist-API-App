@@ -1,11 +1,11 @@
 # Mini-Movie-Watchlist-API-App
-heb deze Mini Movie Watchlist API &amp; App gemaakt als eindopdracht voor het vak API
+heb deze Mini Movie Watchlist API App gemaakt als eindopdracht voor het vak API
 
 Features (Eisen & Wensen)
 Core Idea
 •	Users can create their own watchlist of movies/series. ✅
 •	They can add, edit, delete, and mark movies as “watched.” ✅
-•	Extra spice: rate movies and search/filter by genre or “watched/unwatched.”
+•	Extra: rate movies and search/filter by genre or “watched/unwatched.”
 
 Eisen (must-haves):
 1.	User can add a movie to their list (title, year, genre).✅
@@ -19,7 +19,7 @@ Wensen (nice-to-haves):
 •	Search/filter by genre or by “watched.”
 •	Show a “Top 5 movies” endpoint.
 •	Integration with a public API (optional: fetch poster images from OMDB API). ✅
-•   show the movie with a public API. ✅
+•  show the movie with a public API. ✅
 
 Endpoints
 CRUD:
