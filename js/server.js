@@ -11,8 +11,6 @@ app.use(express.json());
 
 app.use(express.static(__dirname + '/../'));
 
-
-
 const db = mysql.createPool({
   host: 'localhost',
   user: 'root',
@@ -29,7 +27,7 @@ app.get('/api/movies', async (req, res, next) => {
        FROM movies m
        LEFT JOIN genres g ON m.genres_id = g.id`
     );
-
+    
     // Ensure boolean fields are proper booleans
     const mapped = rows.map(r => ({ ...r, watched: Boolean(r.watched), watchlist: Boolean(r.watchlist) }));
     res.json(mapped);

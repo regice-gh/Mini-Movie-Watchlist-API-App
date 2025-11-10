@@ -8,11 +8,11 @@ Core Idea
 •	Extra spice: rate movies and search/filter by genre or “watched/unwatched.”
 
 Eisen (must-haves):
-1.	User can add a movie to their list (title, year, genre).✅
-2.	User can edit a movie entry. ✅
-3.	User can delete a movie.✅
-4.	User can mark movies on watchlist/ off watchlist. ✅
-5.	The app shows the full list. ✅
+•	User can add a movie to their list (title, year, genre).✅
+•	User can edit a movie entry. ✅
+•	User can delete a movie.✅
+•	User can mark movies on watchlist/ off watchlist. ✅
+•	The app shows the full list. ✅
    
 Wensen (nice-to-haves):
 •	Rating system (1–5 stars). ✅
