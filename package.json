@@ -4,7 +4,8 @@
   "description": "Helpers to create MySQL schema and populate dummy movies for the Mini Movie Watchlist API",
   "main": "js/populate-db.js",
   "scripts": {
-    "populate-db": "node js/populate-db.js"
+    "populate-db": "node js/populate-db.js",
+    "test": "jest"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -28,5 +29,8 @@
   "bugs": {
     "url": "https://github.com/regice-gh/Mini-Movie-Watchlist-API-App/issues"
   },
-  "homepage": "https://github.com/regice-gh/Mini-Movie-Watchlist-API-App#readme"
+  "homepage": "https://github.com/regice-gh/Mini-Movie-Watchlist-API-App#readme",
+  "devDependencies": {
+    "jest": "^30.2.0"
+  }
 }
