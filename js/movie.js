@@ -24,11 +24,11 @@ function renderMovie(movie, id) {
         return;
     }
     const imdbId = (movie && movie.imdbNumber) ? movie.imdbNumber : 'tt0111161';
-    const topIframe = document.querySelector('main iframe');
-    if (topIframe) {
-        topIframe.src = `https://vidfast.pro/movie/${encodeURIComponent(imdbId)}?autoPlay=true&fullscreenButton=true&chromeCastButton=true&title=${encodeURIComponent(movie.title || '')}&poster=${encodeURIComponent(movie.poster_url || '')}`;
-        topIframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
-        topIframe.allowFullscreen = true;
+    const mainMovieIframe = document.querySelector('main iframe');
+    if (mainMovieIframe) {
+        mainMovieIframe.src = `https://vidfast.pro/movie/${encodeURIComponent(imdbId)}?autoPlay=true&fullscreenButton=true&chromeCastButton=true&title=${encodeURIComponent(movie.title || '')}&poster=${encodeURIComponent(movie.poster_url || '')}`;
+        mainMovieIframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
+        mainMovieIframe.allowFullscreen = true;
     }
 
     const poster = document.createElement('img');
@@ -132,7 +132,7 @@ function renderMovie(movie, id) {
     card.appendChild(body);
 }
 
-(async function () {
+async function init() {
     const id = getQueryParam('id');
     if (!id) {
         document.getElementById('detail-card').textContent = 'No movie id provided.';
@@ -140,4 +140,6 @@ function renderMovie(movie, id) {
     }
     const movie = await fetchMovie(id);
     renderMovie(movie, id);
-})();
+}
+
+init();

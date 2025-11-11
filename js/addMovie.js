@@ -91,10 +91,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
       alert(`Successfully added: ${created.title} (${created.year || 'Unknown year'})`);
 
-      // Clear form
       form.reset();
 
-      // Redirect to home page
       setTimeout(() => {
         window.location.href = 'index.html#movie-list';
       }, 500);
