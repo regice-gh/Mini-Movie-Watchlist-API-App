@@ -215,7 +215,10 @@ app.delete('/api/movies/:id', async (req, res, next) => {
     next(error);
   }
 });
+if (require.main === module) {
+  app.listen(port, () => {
+    console.log(`Movie API server listening on http://localhost:${port}`);
+  });
+}
 
-app.listen(port, () => {
-  console.log(`Movie API server listening on http://localhost:${port}`);
-});
+module.exports = app;
