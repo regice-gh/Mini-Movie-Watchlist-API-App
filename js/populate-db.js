@@ -1,5 +1,5 @@
-import 'dotenv/config';
-import mysql from 'mysql2/promise';
+require('dotenv').config();
+const mysql = require('mysql2/promise');
 
 const DB_NAME = process.env.DB_NAME || 'apieindopdracht';
 const DB_HOST = process.env.DB_HOST || 'localhost';
@@ -13,11 +13,14 @@ const dummyGenres = [
 ];
 
 const dummyMovies = [
-  { title: 'The Shawshank Redemption', year: 1994, genre: 'Drama', rating: 5, watched: true, watchlist: true, poster_url: 'https://via.placeholder.com/300x450?text=Shawshank+Redemption' },
-  { title: 'The Godfather', year: 1972, genre: 'Crime', rating: 5, watched: false, watchlist: false, poster_url: 'https://via.placeholder.com/300x450?text=The+Godfather' },
-  { title: 'Inception', year: 2010, genre: 'Sci-Fi', rating: 4, watched: false, watchlist: false, poster_url: 'https://via.placeholder.com/300x450?text=Inception' },
-  { title: 'Spirited Away', year: 2001, genre: 'Animation', rating: 5, watched: true, watchlist: false, poster_url: 'https://via.placeholder.com/300x450?text=Spirited+Away' },
-  { title: 'Parasite', year: 2019, genre: 'Thriller', rating: 5, watched: false, watchlist: false, poster_url: 'https://via.placeholder.com/300x450?text=Parasite' }
+  { title: 'The Shawshank Redemption', year: 1994, genre: 'Drama', rating: 5, watched: true, watchlist: true, poster_url: 'https://via.placeholder.com/300x450?text=Shawshank+Redemption', imdbNumber: 'tt0111161' },
+  { title: 'The Godfather', year: 1972, genre: 'Crime', rating: 5, watched: false, watchlist: false, poster_url: 'https://via.placeholder.com/300x450?text=The+Godfather', imdbNumber: 'tt0068646' },
+  { title: 'Inception', year: 2010, genre: 'Sci-Fi', rating: 4, watched: false, watchlist: false, poster_url: 'https://via.placeholder.com/300x450?text=Inception', imdbNumber: 'tt1375666' },
+  { title: 'Spirited Away', year: 2001, genre: 'Animation', rating: 5, watched: true, watchlist: false, poster_url: 'https://via.placeholder.com/300x450?text=Spirited+Away', imdbNumber: 'tt0245429' },
+  { title: 'Parasite', year: 2019, genre: 'Thriller', rating: 5, watched: false, watchlist: false, poster_url: 'https://via.placeholder.com/300x450?text=Parasite', imdbNumber: 'tt6751668' },
+  { title: 'The Dark Knight', year: 2008, genre: 'Action', rating: 5, watched: true, watchlist: true, poster_url: 'https://via.placeholder.com/300x450?text=The+Dark+Knight', imdbNumber: 'tt0468569' },
+  { title: 'Forrest Gump', year: 1994, genre: 'Romance', rating: 4, watched: true, watchlist: false, poster_url: 'https://via.placeholder.com/300x450?text=Forrest+Gump', imdbNumber: 'tt0109830' },
+  { title: 'The Matrix', year: 1999, genre: 'Sci-Fi', rating: 5, watched: false, watchlist: true, poster_url: 'https://via.placeholder.com/300x450?text=The+Matrix', imdbNumber: 'tt0133093' },
 ];
 
 async function main() {
@@ -55,6 +58,7 @@ async function main() {
         watched BOOLEAN NOT NULL DEFAULT FALSE,
         watchlist TINYINT(1) NOT NULL DEFAULT 0,
         poster_url VARCHAR(512) NULL,
+        imdbNumber VARCHAR(20) NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (genres_id) REFERENCES genres(id)
       )
@@ -86,14 +90,14 @@ async function main() {
 
     for (const m of dummyMovies) {
       await conn.execute(
-        'INSERT INTO movies (title, year, genres_id, rating, watched, watchlist, poster_url) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [m.title, m.year, genreIdMap[m.genre], m.rating, m.watched ? 1 : 0, m.watchlist ? 1 : 0, m.poster_url]
+        'INSERT INTO movies (title, year, genres_id, rating, watched, watchlist, poster_url, imdbNumber) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        [m.title, m.year, genreIdMap[m.genre], m.rating, m.watched ? 1 : 0, m.watchlist ? 1 : 0, m.poster_url, m.imdbNumber]
       );
     }
     console.log('Inserted dummy movies');
 
     const [rows] = await conn.execute(`
-      SELECT m.id, m.title, m.year, g.name AS genre, m.rating, m.watched, m.watchlist, m.poster_url, m.created_at
+      SELECT m.id, m.title, m.year, g.name AS genre, m.rating, m.watched, m.watchlist, m.poster_url, m.imdbNumber, m.created_at
       FROM movies m
       INNER JOIN genres g ON m.genres_id = g.id
     `);

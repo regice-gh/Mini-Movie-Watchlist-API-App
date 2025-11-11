@@ -23,6 +23,13 @@ function renderMovie(movie, id) {
         card.textContent = 'Movie not found.';
         return;
     }
+    const imdbId = (movie && movie.imdbNumber) ? movie.imdbNumber : 'tt0111161';
+    const topIframe = document.querySelector('main iframe');
+    if (topIframe) {
+        topIframe.src = `https://vidfast.pro/movie/${encodeURIComponent(imdbId)}?autoPlay=true&fullscreenButton=true&chromeCastButton=true&title=${encodeURIComponent(movie.title || '')}&poster=${encodeURIComponent(movie.poster_url || '')}`;
+        topIframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
+        topIframe.allowFullscreen = true;
+    }
 
     const poster = document.createElement('img');
     poster.className = 'poster';
