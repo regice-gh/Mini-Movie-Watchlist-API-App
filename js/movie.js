@@ -63,6 +63,9 @@ function renderMovie(movie, id) {
     watchlistBtn.textContent = movie.watchlist ? 'On Watchlist' : 'Off Watchlist';
     watchlistBtn.addEventListener('click', async () => {
         try {
+            watchlistBtn.disabled = true;
+            watchlistBtn.textContent = 'Updating...';
+            
             const url = `http://localhost:3000/api/movies/${encodeURIComponent(id)}/watchlist`;
             const res = await fetch(url, { method: 'PATCH' });
 
@@ -78,7 +81,6 @@ function renderMovie(movie, id) {
                 'aria-label',
                 `${movie.watchlist ? 'On Watchlist' : 'Off Watchlist'} for ${movie.title}`);
 
-            window.location.reload();
         }
         catch (err) {
             console.error('Error updating movie:', err);

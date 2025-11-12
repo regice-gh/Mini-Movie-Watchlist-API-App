@@ -27,9 +27,8 @@ app.get('/api/movies', async (req, res, next) => {
        FROM movies m
        LEFT JOIN genres g ON m.genres_id = g.id`
     );
-    
-    // Ensure boolean fields are proper booleans
-    const mapped = rows.map(r => ({ ...r, watched: Boolean(r.watched), watchlist: Boolean(r.watchlist) }));
+    // Map watched and watchlist to booleans
+    const mapped = rows.map(row => ({ ...row, watched: Boolean(row.watched), watchlist: Boolean(row.watchlist) }));
     res.json(mapped);
   } catch (error) {
     console.error("Error fetching movies from database:", error);
@@ -47,7 +46,6 @@ app.get('/api/genres', async (req, res, next) => {
     next(err);
   }
 });
-
 
 app.get('/api/movies/:id', async (req, res, next) => {
   const id = Number(req.params.id);
@@ -73,7 +71,6 @@ app.get('/api/movies/:id', async (req, res, next) => {
     next(err);
   }
 });
-
 
 app.post('/api/movies', async (req, res, next) => {
   const { title, year, genre, rating, watched = false, watchlist = false } = req.body;
@@ -118,8 +115,6 @@ app.post('/api/movies', async (req, res, next) => {
     next(error);
   }
 });
-
-
 
 app.put('/api/movies/:id', async (req, res, next) => {
   const id = Number(req.params.id);
@@ -183,23 +178,17 @@ app.patch('/api/movies/:id/watchlist', async (req, res, next) => {
       'UPDATE movies SET watchlist = NOT watchlist WHERE id = ?',
       [id]
     );
-    const [rows] = await db.execute(
-      `SELECT m.*, g.name as genre
-       FROM movies m
-       LEFT JOIN genres g ON m.genres_id = g.id
-       WHERE m.id = ?`,
+    
+    const [[updated]] = await db.execute(
+      'SELECT watchlist FROM movies WHERE id = ? LIMIT 1',
       [id]
     );
-    const updatedMovie = rows[0];
-    if (updatedMovie) { updatedMovie.watchlist = Boolean(updatedMovie.watchlist); updatedMovie.watched = Boolean(updatedMovie.watched); }
-    res.json(updatedMovie);
+    res.json({ id, watchlist: Boolean(updated.watchlist) });
   } catch (err) {
     console.error('Error toggling watchlist for movie id', id, err);
     next(err);
   }
 });
-
-
 
 app.delete('/api/movies/:id', async (req, res, next) => {
   const id = Number(req.params.id);
@@ -220,5 +209,5 @@ if (require.main === module) {
     console.log(`Movie API server listening on http://localhost:${port}`);
   });
 }
-
+//for testing
 module.exports = app;
