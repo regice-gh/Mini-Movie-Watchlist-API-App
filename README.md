@@ -54,3 +54,7 @@ Keep it simple — plain JS with fetch:
 2.  Buttons to add, edit, delete. ✅
 3.	A checkbox or toggle for “watched.” ✅
 4.	Maybe a little “Top 5” section. 
+
+
+
+only used for educational purposes.
