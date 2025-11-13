@@ -11,12 +11,15 @@ async function fetchMovies() {
         const movies = await response.json();
 
         const movieListElement = document.getElementById('movieList');
+        const placeholder = document.getElementById('moviesPlaceholder');
+        let moviesCount = 0;
 
         if (!movieListElement) return;
 
         movieListElement.innerHTML = '';
 
         movies.forEach(movie => {
+            moviesCount++;
             const id = movie.id || movie._id || movie.ID;
 
             const card = document.createElement('article');
@@ -106,6 +109,9 @@ async function fetchMovies() {
             movieListElement.appendChild(card);
         });
 
+        if (placeholder) {
+            placeholder.style.display = moviesCount > 0 ? 'none' : '';
+        }
     } catch (error) {
         console.error('Could not fetch movies:', error);
         const movieListElement = document.getElementById('movieList');
@@ -330,7 +336,6 @@ async function fetchWatchListMovies() {
             }
         });
 
-        // Show/hide placeholder
         if (placeholder) {
             placeholder.style.display = watchlistCount > 0 ? 'none' : '';
         }

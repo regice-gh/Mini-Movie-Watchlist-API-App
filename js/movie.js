@@ -1,6 +1,6 @@
-function getQueryParam(name) {
+function getQueryParam(id) {
     const params = new URLSearchParams(window.location.search);
-    return params.get(name);
+    return params.get(id);
 }
 
 async function fetchMovie(id) {
