@@ -56,8 +56,11 @@ Keep it simple — plain JS with fetch:
 4.	Maybe a little “Top 5” section. 
 
 test command powershell: cmd /c "npm test"
+
 reset database fully: node js/populate-db.js --recreate
+
 reset data in database without dropping: node js/populate-db.js --reset
+
 start server on localhost: node js/server.js
 
 only used for educational purposes.
